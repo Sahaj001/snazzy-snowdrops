@@ -1,24 +1,30 @@
 [project]
-# This section contains metadata about your project.
-# Don't forget to change the name, description, and authors to match your project!
-name = "code-jam-template"
-description = "Add your description here"
-authors = [
-    { name = "Your Name" }
-]
+name = "snazzy-snowdrops"
 version = "0.1.0"
+description = "Snazzy Snowdrops - Code Jam 12"
+license = "MIT"
+license-files = ["LICENSE.txt"]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
-
-[dependency-groups]
-# This `dev` group contains all the development requirements for our linting toolchain.
-# Don't forget to pin your dependencies!
-# This list will have to be migrated if you wish to use another dependency manager.
-dev = [
-    "pre-commit~=4.2.0",
-    "ruff~=0.12.2",
+authors = [
+    { name = "base_13" },
+    { name = "~afere168421~" },
+    { name = "aspizu" },
+    { name = "Exponential Three" },
+    { name = "Axthe_E_I" },
+    { name = "MaxAsif" },
 ]
+
+[tool.poetry]
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.2.0"
+ruff = "^0.12.2"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 # Increase the line length. This breaks PEP8 but it is way easier to work with.
