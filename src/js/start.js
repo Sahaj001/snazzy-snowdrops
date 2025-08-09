@@ -13,8 +13,7 @@ async function main() {
     // Handle window resize
     window.addEventListener('resize', () => {
         pyodide.runPython(`
-            import main
-            main.resize_canvas()
+            resize_canvas()
         `);
     });
 }
