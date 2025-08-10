@@ -19,8 +19,8 @@ class Fruit(Entity, Interactable):
         """Allow an actor to interact with the fruit, e.g., pick it up."""
         # Example: Add fruit to actor's inventory if available
         if hasattr(actor, "inventory"):
-            actor.inventory.add(super().entity_id, 1)
-            print(f"{actor.id} picked up {self.entity_id}.")
+            actor.inventory.add(self.id, 1)
+            print(f"{actor.id} picked up {self.id}.")
 
     def update(
         self,

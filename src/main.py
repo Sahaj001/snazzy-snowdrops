@@ -18,6 +18,8 @@ from view import ViewBridge
 
 # 1. Get the HTML canvas and pass to ViewBridge
 canvas = document.getElementById("gameCanvas")
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight
 input_system = InputSystem()
 view_bridge = ViewBridge(canvas, input_system)
 
@@ -51,7 +53,7 @@ HORIZONTAL_WALL_X_END = 12
 
 def generate_tile_map() -> TileMap:
     """Generate a simple tile map for the world."""
-    tile_size = 10  # Pixels per tile
+    tile_size = 50  # Pixels per tile
     width, height = (
         canvas.width // tile_size,
         canvas.height // tile_size,
@@ -81,7 +83,7 @@ def generate_tile_map() -> TileMap:
     return game_tile_map
 
 
-def get_world(game_tile_map: TileMap) -> World:
+def generate_world(game_tile_map: TileMap) -> World:
     """Create a new world with the given tile map."""
     game_world = World(tiles=game_tile_map)
     # Example player
@@ -102,7 +104,7 @@ def get_world(game_tile_map: TileMap) -> World:
     return game_world
 
 
-world = get_world(generate_tile_map())
+world = generate_world(generate_tile_map())
 
 
 # 6. Create game engine

@@ -90,30 +90,59 @@ class World:
         events = event_bus.poll()
 
         for event in events:
-            if event.type == "input":
+            if event.event_type == "input":
                 self._handle_input(event.payload)
 
         for e in self.entities:
             e.update(self, dt)
 
     def _handle_input(self, payload: dict) -> None:
-        print("payload", payload)
-        key = payload["key"]
+        """Handle input events like clicks or key presses."""
+        print("_handle_input payload", payload)
         etype = payload["type"]
+        if etype == "key":
+            self._handle_key_event(payload)
+        elif etype == "click":
+            self._handle_click_event(payload)
+        else:
+            print(f"Unhandled input event type: {etype}")
+
+    def _handle_click_event(self, payload: dict) -> None:
+        """Handle click events to interact with entities."""
+        screen_x, screen_y = payload["position"]
+        # Convert screen coordinates to tile coordinates
+
+        tile_x, tile_y = (
+            screen_x // self.tiles.tile_size,
+            screen_y // self.tiles.tile_size,
+        )
+        print(f"Click at screen coordinates: ({screen_x}, {screen_y})")
+        print(f"Click at tile coordinates: ({tile_x}, {tile_y})")
+
+        clicked_entity = next(
+            (e for e in self.entities if e.pos.x == tile_x and e.pos.y == tile_y),
+            None,
+        )
+        print(f"Clicked entity: {clicked_entity}")
+
+        if clicked_entity and hasattr(clicked_entity, "interact"):
+            clicked_entity.interact(self.players[0] if self.players else None)
+
+    def _handle_key_event(self, payload: dict) -> None:
+        key = payload["key"]
 
         player = self.players[0] if self.players else None
         if not player:
             return
 
-        if etype == "keydown":
-            if key == "ArrowUp":
-                player.move(0, -1, self)
-            elif key == "ArrowDown":
-                player.move(0, 1, self)
-            elif key == "ArrowLeft":
-                player.move(-1, 0, self)
-            elif key == "ArrowRight":
-                player.move(1, 0, self)
+        if key == "ArrowUp":
+            player.move(0, -1, self)
+        elif key == "ArrowDown":
+            player.move(0, 1, self)
+        elif key == "ArrowLeft":
+            player.move(-1, 0, self)
+        elif key == "ArrowRight":
+            player.move(1, 0, self)
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""

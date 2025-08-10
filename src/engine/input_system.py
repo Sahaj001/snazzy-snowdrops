@@ -1,14 +1,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 
 @dataclass
 class InputEvent:
     """Represents a single user input event."""
 
-    input_type: str
-    key: str
+    input_type: InputType
+    key: str | None = None
+    position: tuple[int, int] | None = None
+
+
+class InputType(Enum):
+    """Defines the type of input events."""
+
+    KEYDOWN = "keydown"
+    KEYUP = "keyup"
+    CLICK = "click"
 
 
 class InputSystem:

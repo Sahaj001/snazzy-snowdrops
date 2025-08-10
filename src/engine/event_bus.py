@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 
+
+@dataclass
 class GameEvent:
     """Represents a game-wide event."""
 
-    def __init__(self, event_type: str, payload: dict) -> None:
-        self.type = event_type
-        self.payload = payload
+    event_type: str
+    payload: dict
 
 
 class EventBus:

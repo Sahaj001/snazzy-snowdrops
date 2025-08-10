@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from engine.event_bus import GameEvent
+from engine.input_system import InputType
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
@@ -32,9 +33,17 @@ class GameEngine:
         input_events = self.input.consume_events()
 
         for event in input_events:
-            self.event_bus.post(
-                GameEvent("input", {"type": event.input_type, "key": event.key}),
-            )
+            print(f"Processing input event: {event}")
+            if event.input_type == InputType.CLICK:
+                self.event_bus.post(
+                    GameEvent("input", {"type": "click", "position": event.position}),
+                )
+            elif event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
+                # Handle key events
+                print(f"Key event: {event.input_type} {event.key}")
+                self.event_bus.post(
+                    GameEvent("input", {"type": "key", "key": event.key}),
+                )
 
         self.world.update(dt, self.event_bus)
         self.render()
