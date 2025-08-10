@@ -8,5 +8,5 @@
 ```
 
 2. [Install Poetry](https://python-poetry.org/docs/#installation)
-3. Run `poetry install --with dev`
+3. Run `poetry install --with dev --no-root`
 4. Run `pre-commit install`
