@@ -6,7 +6,6 @@ import js
 from js import Image, document
 from pyodide.ffi import create_proxy
 
-from engine import mouse
 from engine.input_system import InputEvent, InputSystem
 
 if TYPE_CHECKING:
@@ -41,9 +40,6 @@ class ViewBridge:
 
         document.addEventListener("keydown", self.key_down_proxy)
         document.addEventListener("keyup", self.key_up_proxy)
-        document.addEventListener("mousemove", mouse.on_mouse_move)
-        document.addEventListener("mousedown", mouse.on_mouse_down)
-        document.addEventListener("mouseup", mouse.on_mouse_up)
 
     def draw(self, cmds: list[DrawCmd]) -> None:
         """Send draw commands to the JS side for rendering."""
