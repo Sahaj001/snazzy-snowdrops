@@ -10,7 +10,7 @@ from engine import (
     RenderSystem,
     SpriteRegistry,
 )
-from game import Player, Tile, TileMap, World
+from game import Fruit, Player, Tile, TileMap, Tree, TreeBehaviour, World
 from models import Pos
 from view import ViewBridge
 
@@ -47,7 +47,6 @@ VERTICAL_WALL_Y_END = 8
 HORIZONTAL_WALL_Y = 7
 HORIZONTAL_WALL_X_START = 8
 HORIZONTAL_WALL_X_END = 12
-TREE_POSITIONS = [(10, 11), (12, 4), (13, 23)]  # Example tree positions
 
 
 def generate_tile_map() -> TileMap:
@@ -58,7 +57,7 @@ def generate_tile_map() -> TileMap:
         canvas.height // tile_size,
     )  # Map size in tiles
 
-    tile_map = TileMap(width, height, tile_size)
+    game_tile_map = TileMap(width, height, tile_size)
 
     for y in range(height):
         for x in range(width):
@@ -71,30 +70,40 @@ def generate_tile_map() -> TileMap:
                 or (y == HORIZONTAL_WALL_Y and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END)
             ):
                 tile = Tile("wall", passable=False, z=1)
-            elif (x, y) in TREE_POSITIONS:
-                # Randomly place trees
-                tile = Tile("tree", passable=False, z=0)
             else:
-                # Everything else is grass
                 tile = Tile("grass", passable=True, z=0)
 
-            tile_map.set(x, y, tile)
+            game_tile_map.set(x, y, tile)
 
     print("Tile map generated with dimensions:", width, "x", height)
-    print("Tile map data:", tile_map.tiles)
+    print("Tile map data:", game_tile_map.tiles)
 
-    return tile_map
+    return game_tile_map
 
 
-# Generate the tile map
-tile_map = generate_tile_map()
+def get_world(game_tile_map: TileMap) -> World:
+    """Create a new world with the given tile map."""
+    game_world = World(tiles=game_tile_map)
+    # Example player
+    player = Player(entity_id="player1", pos=Pos(1, 1, 0), behaviour=None)
+    game_world.add_player(player)
 
-world = World(tiles=tile_map)
+    # Entities like tree and fruit
+    fruit = Fruit("fruit1", pos=Pos(12, 2, 0), behaviour=None)
+    game_world.add_entity(fruit)
 
-# Example player
-player = Player(entity_id="player1", pos=Pos(1, 1, 0), behaviour=None)
-world.players.append(player)
-world.entities.append(player)
+    for idx, tree_pos in enumerate([(3, 3), (4, 4), (5, 5)]):
+        tree = Tree(f"tree_{idx}", pos=Pos(*tree_pos, 0), behaviour=TreeBehaviour())
+        game_world.add_entity(tree)
+
+    game_world.players.append(player)
+    game_world.entities.append(player)
+
+    return game_world
+
+
+world = get_world(generate_tile_map())
+
 
 # 6. Create game engine
 engine = GameEngine(

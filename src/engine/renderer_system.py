@@ -36,9 +36,9 @@ class SpriteRegistry:
             image_path="assets/sprites/wall.png",
             size=(sprite_size, sprite_size),
         )
-        self._sprites["stone"] = Sprite(
+        self._sprites["fruit"] = Sprite(
             type=SpriteType.TILE,
-            image_path="assets/sprites/stone.png",
+            image_path="assets/sprites/fruit.png",
             size=(sprite_size, sprite_size),
         )
         self._sprites["grass"] = Sprite(

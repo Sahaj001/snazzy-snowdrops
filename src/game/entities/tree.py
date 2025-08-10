@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from engine import mouse
-from engine.interfaces import Interactable
+from engine.interfaces import Behaviour, Interactable
 from game.entities.entity import Entity
 
 if TYPE_CHECKING:
-    from engine.interfaces import Behaviour, Pos
+    from engine.interfaces import Pos
 
 
 class Tree(Entity, Interactable):
@@ -22,8 +21,22 @@ class Tree(Entity, Interactable):
 
     def update(
         self,
+        *args: int,
+        **kwargs: int,
     ) -> None:
-        """UUpdate the tree's state."""
+        """Update the tree's state."""
         # Trees may have seasonal changes or drop fruits
-        if mouse.capture_mouse(self.id):
-            print(f"{self.__class__.__name__} {self.id} was clicked")
+
+
+class TreeBehaviour(Behaviour):
+    """Defines the behaviour of a tree entity."""
+
+    @property
+    def passable(self) -> bool:
+        """Trees are not passable."""
+        return False
+
+    @property
+    def interactable(self) -> bool:
+        """Trees can be interacted with."""
+        return False

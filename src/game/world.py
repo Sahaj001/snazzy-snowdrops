@@ -67,7 +67,23 @@ class World:
 
     def is_passable(self, x: int, y: int) -> bool:
         """Check if a location is passable in the tile map."""
-        return self.tiles.is_passable(x, y)
+        # First check if the tile itself is passable
+        if not self.tiles.is_passable(x, y):
+            return False
+
+        # Then check if any entity at this position blocks movement
+        for entity in self.entities:
+            if (
+                entity.pos.x == x
+                and entity.pos.y == y
+                and hasattr(entity, "behaviour")
+                and entity.behaviour
+                and (entity.behaviour, "passable")
+                and not entity.behaviour.passable
+            ):
+                return False
+
+        return True
 
     def update(self, dt: float, event_bus: EventBus) -> None:
         """Update all entities in the world."""
