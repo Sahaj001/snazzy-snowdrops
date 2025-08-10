@@ -51,7 +51,11 @@ class SpriteRegistry:
             image_path="assets/sprites/tree.png",
             size=(sprite_size, sprite_size),
         )
-
+        self._sprites["fruit"] = Sprite(
+            type=SpriteType.EDIBLE,
+            image_path="assets/sprites/fruit.png",
+            size=(32,32),
+        )
 
 class RenderSystem:
     """Builds a draw queue and sends it to the view."""
