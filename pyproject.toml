@@ -1,69 +1,17 @@
 [project]
-name = "snazzy-snowdrops"
+name = "snazzy_snowdrops"
 version = "0.1.0"
-description = "Snazzy Snowdrops - Code Jam 12"
-license = "MIT"
-license-files = ["LICENSE.txt"]
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
-authors = [
-    { name = "base_13" },
-    { name = "~afere168421~" },
-    { name = "aspizu" },
-    { name = "Exponential Three" },
-    { name = "Axthe_E_I" },
-    { name = "MaxAsif" },
-]
+requires-python = ">=3.13"
+dependencies = ["pyodide-py>=0.28.1", "starlette>=0.47.2", "uvicorn>=0.35.0"]
 
-[tool.poetry]
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.2.0"
-ruff = "^0.12.2"
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.ruff]
-# Increase the line length. This breaks PEP8 but it is way easier to work with.
-# The original reason for this limit was a standard vim terminal is only 79 characters,
-# but this doesn't really apply anymore.
-line-length = 119
-# Target Python 3.12. If you decide to use a different version of Python
-# you will need to update this value.
-target-version = "py312"
-# Automatically fix auto-fixable issues.
-fix = true
-# The directory containing the source code. If you choose a different project layout
-# you will need to update this value.
-src = ["src"]
+[tool.pyright]
+typeCheckingMode = "standard"
+reportMissingModuleSource = false
 
 [tool.ruff.lint]
-# Enable all linting rules.
 select = ["ALL"]
-# Ignore some of the most obnoxious linting errors.
-ignore = [
-    # Missing docstrings.
-    "D100",
-    "D104",
-    "D105",
-    "D106",
-    "D107",
-    # Docstring whitespace.
-    "D203",
-    "D213",
-    # Docstring punctuation.
-    "D415",
-    # Docstring quotes.
-    "D301",
-    # Builtins.
-    "A",
-    # Print statements.
-    "T20",
-    # TODOs.
-    "TD002",
-    "TD003",
-    "FIX",
-]
+extend-safe-fixes = ["ALL"]
+ignore = ["D", "COM", "ANN401", "S311", "PLW0603"]
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]

@@ -1,34 +1,69 @@
 <!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="UTF-8">
-    <title>Pyodide Game Test</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #222;
-            overflow: hidden;
-        }
-
-        canvas {
-            display: block;
-            width: 100vw;
-            height: 100vh;
-            background: white;
-        }
-    </style>
-</head>
-
-<body>
-    <canvas id="gameCanvas"></canvas>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
-    <script src="js/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.0/umd/index.js"></script>
-    <script>
-
-    </script>
-</body>
-
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" href="/static/favicon.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Snazzy Snowdrops</title>
+    </head>
+    <body>
+        <div id="spinner"></div>
+        <canvas id="canvas" class="hidden" width="320" height="240"></canvas>
+        <style>
+            body {
+                background: black;
+            }
+            .hidden {
+                display: none;
+            }
+            #spinner {
+                left: 50%;
+                top: 50%;
+                position: fixed;
+                aspect-ratio: 1/1;
+                width: 20px;
+                border: 2px solid white;
+                border-radius: 9999px;
+                clip-path: inset(0 0 0 50%);
+                animation: spinner 1s linear infinite;
+            }
+            @keyframes spinner {
+                from {
+                    transform: translate(-50%, -50%) rotate(0deg);
+                }
+                to {
+                    transform: translate(-50%, -50%) rotate(360deg);
+                }
+            }
+            #canvas {
+                position: fixed;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%) scale(var(--scale));
+                background: #888;
+                image-rendering: pixelated;
+            }
+        </style>
+        <script type="module">
+            import "https://cdn.jsdelivr.net/pyodide/v0.28.1/full/pyodide.js"
+            const canvas = document.getElementById("canvas")
+            function resizeCanvas() {
+                const w = window.innerWidth / canvas.width
+                const h = window.innerHeight / canvas.height
+                canvas.style.setProperty("--scale", Math.min(w, h))
+            }
+            addEventListener("resize", resizeCanvas)
+            resizeCanvas()
+            const pyodide = await loadPyodide()
+            pyodide.setDebug(true)
+            const response = await fetch("/src.zip")
+            let buffer = await response.arrayBuffer()
+            await pyodide.unpackArchive(buffer, "zip")
+            document.getElementById("spinner").classList.add("hidden")
+            canvas.classList.remove("hidden")
+            await pyodide.runPythonAsync(
+                "import sys; sys.path.append('/src'); import main"
+            )
+        </script>
+    </body>
 </html>
