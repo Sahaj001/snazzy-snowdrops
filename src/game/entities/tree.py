@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from engine import mouse
 from engine.interfaces import Interactable
 from game.entities.entity import Entity
 
@@ -24,3 +25,5 @@ class Tree(Entity, Interactable):
     ) -> None:
         """UUpdate the tree's state."""
         # Trees may have seasonal changes or drop fruits
+        if mouse.capture_mouse(self.id):
+            print(f"{self.__class__.__name__} {self.id} was clicked")

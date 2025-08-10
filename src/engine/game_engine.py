@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from engine import mouse
 from engine.event_bus import GameEvent
 
 if TYPE_CHECKING:
@@ -29,6 +30,7 @@ class GameEngine:
 
     def tick(self, dt: float) -> None:
         """Advance the game state by dt seconds."""
+        mouse.update_mouse()
         input_events = self.input.consume_events()
 
         for event in input_events:

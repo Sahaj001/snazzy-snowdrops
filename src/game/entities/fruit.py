@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from engine import mouse
 from engine.interfaces import Behaviour, Interactable, Pos
 from game.entities.entity import Entity
 
@@ -28,3 +29,5 @@ class Fruit(Entity, Interactable):
         self,
     ) -> None:
         """Update the fruit's state."""
+        if mouse.capture_mouse(self.id):
+            print(f"{self.__class__.__name__} {self.id} was clicked")

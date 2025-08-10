@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from engine import mouse
 from engine.interfaces import Behaviour, Object
 from models.position import Pos
 
@@ -21,6 +22,8 @@ class Entity(Object, ABC):
     @abstractmethod
     def update(self, *args: int, **kwargs: int) -> None:
         """Update the entity's state."""
+        if mouse.capture_mouse(self.id):
+            print(f"{self.__class__.__name__} {self.id} was clicked")
 
     def destroy(self) -> None:
         """Destroy the entity."""
