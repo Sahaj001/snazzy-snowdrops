@@ -12,7 +12,8 @@ from engine import (
     RenderSystem,
     SpriteRegistry,
 )
-from game import Player, Pos, World
+from game import Player, World
+from models import Pos
 from view import ViewBridge
 
 # ==== INITIAL SETUP ====

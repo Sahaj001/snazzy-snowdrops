@@ -19,9 +19,7 @@ class Entity(Object, ABC):
         self.behaviour = behaviour
 
     @abstractmethod
-    def update(
-        self,
-    ) -> None:
+    def update(self, *args: int, **kwargs: int) -> None:
         """Update the entity's state."""
 
     def destroy(self) -> None:
