@@ -4,22 +4,32 @@ is_mouse_down: bool = False
 mouse_x: int = 0
 mouse_y: int = 0
 mouse_capture: str | None = None
+from pyodide.ffi import create_proxy
 
 
-def on_mouse_move(event: Any) -> None:
+def _on_mouse_move(event: Any) -> None:
     global mouse_x, mouse_y
     mouse_x = event.clientX
     mouse_y = event.clientY
 
 
-def on_mouse_down() -> None:
+on_mouse_move = create_proxy(_on_mouse_move)
+
+
+def _on_mouse_down(event: Any) -> None:
     global is_mouse_down
     is_mouse_down = True
 
 
-def on_mouse_up() -> None:
+on_mouse_down = create_proxy(_on_mouse_down)
+
+
+def _on_mouse_up(event: Any) -> None:
     global is_mouse_down
     is_mouse_down = False
+
+
+on_mouse_up = create_proxy(_on_mouse_up)
 
 
 def update_mouse() -> None:
