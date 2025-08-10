@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from engine.event_bus import EventBus
     from game.entities.entity import Entity
     from game.entities.player import Player
     from models.position import Pos
@@ -67,10 +68,35 @@ class World:
         """Check if a location is passable in the tile map."""
         return self.tiles.is_passable(x, y)
 
-    def update(self, dt: float) -> None:
+    def update(self, dt: float, event_bus: EventBus) -> None:
         """Update all entities in the world."""
+        events = event_bus.poll()
+
+        for event in events:
+            if event.type == "input":
+                self._handle_input(event.payload)
+
         for e in self.entities:
             e.update(self, dt)
+
+    def _handle_input(self, payload: dict) -> None:
+        print("payload", payload)
+        key = payload["key"]
+        etype = payload["type"]
+
+        player = self.players[0] if self.players else None
+        if not player:
+            return
+
+        if etype == "keydown":
+            if key == "ArrowUp":
+                player.move(0, -1)
+            elif key == "ArrowDown":
+                player.move(0, 1)
+            elif key == "ArrowLeft":
+                player.move(-1, 0)
+            elif key == "ArrowRight":
+                player.move(1, 0)
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""

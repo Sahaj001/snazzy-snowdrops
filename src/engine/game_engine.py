@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from engine.event_bus import GameEvent
+
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
     from engine.input_system import InputSystem
@@ -27,7 +29,15 @@ class GameEngine:
 
     def tick(self, dt: float) -> None:
         """Advance the game state by dt seconds."""
-        self.world.update(dt)
+        input_events = self.input.consume_events()
+
+        for event in input_events:
+            self.event_bus.post(
+                GameEvent("input", {"type": event.input_type, "key": event.key}),
+            )
+
+        self.world.update(dt, self.event_bus)
+        self.render()
 
     def render(self) -> None:
         """Render the current game state."""

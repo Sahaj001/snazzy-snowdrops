@@ -1,24 +1,22 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from view.view_bridge import ViewBridge
+from dataclasses import dataclass
 
 
+@dataclass
 class InputEvent:
     """Represents a single user input event."""
 
-    def __init__(self, input_type: str, key: str) -> None:
-        self.type = input_type  # e.g., "keydown", "keyup"
-        self.key = key
+    input_type: str
+    key: str
 
 
 class InputSystem:
     """Manages input events."""
 
-    def __init__(self, view_bridge: ViewBridge) -> None:
-        self.view_bridge = view_bridge
+    def __init__(
+        self,
+    ) -> None:
         self._events: list[InputEvent] = []
 
     def consume_events(self) -> list[InputEvent]:

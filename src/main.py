@@ -1,7 +1,5 @@
-# main.py — Entry point for running in Pyodide with HTML canvas
-
 # Import necessary JS bindings
-from js import document, requestAnimationFrame
+from js import document, window
 from pyodide.ffi import create_proxy
 
 from engine import (
@@ -12,7 +10,7 @@ from engine import (
     RenderSystem,
     SpriteRegistry,
 )
-from game import Player, World
+from game import Player, Tile, TileMap, World
 from models import Pos
 from view import ViewBridge
 
@@ -20,7 +18,8 @@ from view import ViewBridge
 
 # 1. Get the HTML canvas and pass to ViewBridge
 canvas = document.getElementById("gameCanvas")
-view_bridge = ViewBridge(canvas)
+input_system = InputSystem()
+view_bridge = ViewBridge(canvas, input_system)
 
 # 2. Load sprite assets
 view_bridge.load_assets("assets/sprites.json")
@@ -36,12 +35,58 @@ render_system = RenderSystem(
     view_bridge=view_bridge,
     camera=camera,
 )
-input_system = InputSystem(view_bridge=view_bridge)
 event_bus = EventBus()
+
 
 # 5. Create world
 # Provide an initial tiles argument (e.g., an empty list or your map data)
-world = World(tiles=[])
+# Wall placement constants
+VERTICAL_WALL_X = 5
+VERTICAL_WALL_Y_START = 3
+VERTICAL_WALL_Y_END = 8
+HORIZONTAL_WALL_Y = 7
+HORIZONTAL_WALL_X_START = 8
+HORIZONTAL_WALL_X_END = 12
+
+
+def generate_tile_map() -> TileMap:
+    """Generate a simple tile map for the world."""
+    width, height = 20, 15  # Map size in tiles
+    tile_size = 32  # Pixels per tile
+
+    tile_map = TileMap(width, height, tile_size)
+
+    for y in range(height):
+        for x in range(width):
+            # Create different tile types based on position
+            if y == 0 or y == height - 1 or x == 0 or x == width - 1:
+                # Border walls
+                tile = Tile("wall", passable=False, z=1)
+            elif x == VERTICAL_WALL_X and VERTICAL_WALL_Y_START <= y <= VERTICAL_WALL_Y_END:
+                # Vertical wall
+                tile = Tile("wall", passable=False, z=1)
+            elif y == HORIZONTAL_WALL_Y and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END:
+                # Horizontal wall
+                tile = Tile("wall", passable=False, z=1)
+            elif (x + y) % 3 == 0:
+                # Some decorative stones
+                tile = Tile("stone", passable=True, z=0)
+            elif x % 4 == 0 and y % 3 == 0:
+                # Trees
+                tile = Tile("tree", passable=False, z=1)
+            else:
+                # Default grass tiles
+                tile = Tile("grass", passable=True, z=0)
+
+            tile_map.set(x, y, tile)
+
+    return tile_map
+
+
+# Generate the tile map
+tile_map = generate_tile_map()
+
+world = World(tiles=tile_map)
 
 # Example player
 player = Player(entity_id="player1", pos=Pos(5, 5, 0), behaviour=None)
@@ -59,7 +104,7 @@ engine = GameEngine(
 # ==== GAME LOOP ====
 
 
-def tick_frame(_timestamp: float) -> None:
+def tick_frame(_timestamp: float | None = None) -> None:
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
@@ -70,8 +115,8 @@ def tick_frame(_timestamp: float) -> None:
     engine.render()
 
     # Schedule next frame
-    requestAnimationFrame(create_proxy(tick_frame))
+    window.requestAnimationFrame(create_proxy(tick_frame))
 
 
 # ==== START GAME ====
-requestAnimationFrame(create_proxy(tick_frame))
+tick_frame()

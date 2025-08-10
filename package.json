@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "zip": "node build-zip.js",
-    "dev": "npm run zip && npx serve public",
+    "dev": "npm run zip && npx serve",
     "start": "npm run dev"
   },
   "devDependencies": {

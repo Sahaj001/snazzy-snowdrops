@@ -1,4 +1,17 @@
 from dataclasses import dataclass
+from enum import Enum
+
+
+class SpriteType(Enum):
+    """Enumeration of different sprite rendering types."""
+
+    SPRITE = "sprite"  # Image-based sprite
+    RECT = "rect"  # Rectangle/square
+    CIRCLE = "circle"  # Circle/ellipse
+    TEXT = "text"  # Text rendering
+    LINE = "line"  # Line drawing
+    POLYGON = "polygon"  # Custom polygon
+    TILE = "tile"  # Tile sprite (for tilemaps)
 
 
 @dataclass
@@ -9,6 +22,7 @@ class Sprite:
     """
 
     image_path: str  # Path to the sprite image file
+    type: SpriteType
     size: tuple[int, int]  # (width, height) in pixels
     frame_count: int = 1  # Number of animation frames
     frame_time: float = 0.1  # Time per frame in seconds
