@@ -47,38 +47,41 @@ VERTICAL_WALL_Y_END = 8
 HORIZONTAL_WALL_Y = 7
 HORIZONTAL_WALL_X_START = 8
 HORIZONTAL_WALL_X_END = 12
+TREE_POSITIONS = [(10, 11), (12, 4), (13, 23)]  # Example tree positions
 
 
 def generate_tile_map() -> TileMap:
     """Generate a simple tile map for the world."""
-    width, height = 20, 15  # Map size in tiles
-    tile_size = 32  # Pixels per tile
+    tile_size = 10  # Pixels per tile
+    width, height = (
+        canvas.width // tile_size,
+        canvas.height // tile_size,
+    )  # Map size in tiles
 
     tile_map = TileMap(width, height, tile_size)
 
     for y in range(height):
         for x in range(width):
-            # Create different tile types based on position
-            if y == 0 or y == height - 1 or x == 0 or x == width - 1:
-                # Border walls
+            if (
+                x == 0
+                or x == width - 1
+                or y == 0
+                or y == height - 1
+                or (x == VERTICAL_WALL_X and VERTICAL_WALL_Y_START <= y <= VERTICAL_WALL_Y_END)
+                or (y == HORIZONTAL_WALL_Y and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END)
+            ):
                 tile = Tile("wall", passable=False, z=1)
-            elif x == VERTICAL_WALL_X and VERTICAL_WALL_Y_START <= y <= VERTICAL_WALL_Y_END:
-                # Vertical wall
-                tile = Tile("wall", passable=False, z=1)
-            elif y == HORIZONTAL_WALL_Y and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END:
-                # Horizontal wall
-                tile = Tile("wall", passable=False, z=1)
-            elif (x + y) % 3 == 0:
-                # Some decorative stones
-                tile = Tile("stone", passable=True, z=0)
-            elif x % 4 == 0 and y % 3 == 0:
-                # Trees
-                tile = Tile("tree", passable=False, z=1)
+            elif (x, y) in TREE_POSITIONS:
+                # Randomly place trees
+                tile = Tile("tree", passable=False, z=0)
             else:
-                # Default grass tiles
+                # Everything else is grass
                 tile = Tile("grass", passable=True, z=0)
 
             tile_map.set(x, y, tile)
+
+    print("Tile map generated with dimensions:", width, "x", height)
+    print("Tile map data:", tile_map.tiles)
 
     return tile_map
 
@@ -89,7 +92,7 @@ tile_map = generate_tile_map()
 world = World(tiles=tile_map)
 
 # Example player
-player = Player(entity_id="player1", pos=Pos(5, 5, 0), behaviour=None)
+player = Player(entity_id="player1", pos=Pos(1, 1, 0), behaviour=None)
 world.players.append(player)
 world.entities.append(player)
 

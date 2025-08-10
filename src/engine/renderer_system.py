@@ -25,30 +25,31 @@ class SpriteRegistry:
     def load_from_json(self, _path: str) -> None:
         """Load sprite metadata from a JSON file."""
         # mock loading from json with some basic sprites like player and path
+        sprite_size = 10
         self._sprites["player"] = Sprite(
             type=SpriteType.SPRITE,
             image_path="assets/sprites/player.png",
-            size=(32, 32),
+            size=(sprite_size, sprite_size),
         )
         self._sprites["wall"] = Sprite(
             type=SpriteType.TILE,
-            image_path="assets/sprites/path.png",
-            size=(32, 32),
+            image_path="assets/sprites/wall.png",
+            size=(sprite_size, sprite_size),
         )
         self._sprites["stone"] = Sprite(
             type=SpriteType.TILE,
-            image_path="assets/sprites/path.png",
-            size=(32, 32),
+            image_path="assets/sprites/stone.png",
+            size=(sprite_size, sprite_size),
         )
         self._sprites["grass"] = Sprite(
             type=SpriteType.TILE,
             image_path="assets/sprites/path.png",
-            size=(32, 32),
+            size=(sprite_size, sprite_size),
         )
         self._sprites["tree"] = Sprite(
             type=SpriteType.TILE,
-            image_path="assets/sprites/path.png",
-            size=(32, 32),
+            image_path="assets/sprites/tree.png",
+            size=(sprite_size, sprite_size),
         )
 
 

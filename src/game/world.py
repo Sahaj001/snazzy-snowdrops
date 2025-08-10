@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -9,13 +10,13 @@ if TYPE_CHECKING:
     from models.position import Pos
 
 
+@dataclass
 class Tile:
     """Represents a single tile in the world."""
 
-    def __init__(self, sprite_id: str, *, z: int = 0, passable: bool = False) -> None:
-        self.sprite_id = sprite_id
-        self.passable = passable
-        self.z = z
+    sprite_id: str
+    z: int = 0
+    passable: bool = False
 
 
 class TileMap:
@@ -90,13 +91,13 @@ class World:
 
         if etype == "keydown":
             if key == "ArrowUp":
-                player.move(0, -1)
+                player.move(0, -1, self)
             elif key == "ArrowDown":
-                player.move(0, 1)
+                player.move(0, 1, self)
             elif key == "ArrowLeft":
-                player.move(-1, 0)
+                player.move(-1, 0, self)
             elif key == "ArrowRight":
-                player.move(1, 0)
+                player.move(1, 0, self)
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""

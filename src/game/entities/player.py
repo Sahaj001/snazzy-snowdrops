@@ -7,6 +7,7 @@ from game.entities.entity import Entity
 from game.inventory import Inventory
 
 if TYPE_CHECKING:
+    from game.world import World
     from models.position import Pos
 
 
@@ -25,12 +26,13 @@ class Player(Entity, Living):
         self.speed = speed
         self.hp = 100
 
-    def move(self, dx: int, dy: int) -> None:
+    def move(self, dx: int, dy: int, world: World) -> None:
         """Move the player by dx, dy if the target tile is passable."""
         new_x = self.pos.x + dx
         new_y = self.pos.y + dy
-        self.pos.x = new_x
-        self.pos.y = new_y
+        if world.is_passable(new_x, new_y):
+            self.pos.x = new_x
+            self.pos.y = new_y
 
     def update(
         self,
