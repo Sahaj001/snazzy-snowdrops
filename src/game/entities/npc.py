@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from engine import mouse
 from engine.interfaces import Behaviour, Living, Pos
 from game.entities.entity import Entity
 
@@ -23,8 +22,6 @@ class NPC(Entity, Living):
         self,
     ) -> None:
         """Update the NPC's AI state and behavior."""
-        if mouse.capture_mouse(self.id):
-            print(f"{self.__class__.__name__} {self.id} was clicked")
 
     def is_alive(self) -> bool:
         """Check if the NPC is alive based on HP."""
