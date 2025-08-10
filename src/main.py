@@ -1,66 +1,76 @@
-from js import console, document, window
+# main.py — Entry point for running in Pyodide with HTML canvas
+
+# Import necessary JS bindings
+from js import document, requestAnimationFrame
 from pyodide.ffi import create_proxy
 
-console.log("Python script started ✅")
+from engine import (
+    Camera,
+    EventBus,
+    GameEngine,
+    InputSystem,
+    RenderSystem,
+    SpriteRegistry,
+)
+from game import Player, Pos, World
+from view import ViewBridge
 
+# ==== INITIAL SETUP ====
+
+# 1. Get the HTML canvas and pass to ViewBridge
 canvas = document.getElementById("gameCanvas")
-ctx = canvas.getContext("2d")
+view_bridge = ViewBridge(canvas)
 
-if ctx is None:
-    console.error("Canvas context is None ❌")
-else:
-    console.log("Canvas context acquired ✅")
+# 2. Load sprite assets
+view_bridge.load_assets("assets/sprites.json")
 
+# 3. Create sprite registry
+sprite_registry = SpriteRegistry()
+sprite_registry.load_from_json("assets/sprites.json")
 
-class BouncingSquare:
-    """A simple bouncing square game object."""
+# 4. Create systems
+camera = Camera(x=0, y=0, screen_w=canvas.width, screen_h=canvas.height)
+render_system = RenderSystem(
+    sprites=sprite_registry,
+    view_bridge=view_bridge,
+    camera=camera,
+)
+input_system = InputSystem(view_bridge=view_bridge)
+event_bus = EventBus()
 
-    def __init__(self, x: int, y: int, vx: float, vy: float, size: int = 30) -> None:
-        """Initialize the bouncing square."""
-        self.x = x
-        self.y = y
-        self.vx = vx
-        self.vy = vy
-        self.size = size
-        self.color = "red"
+# 5. Create world
+# Provide an initial tiles argument (e.g., an empty list or your map data)
+world = World(tiles=[])
 
-    def update(self) -> None:
-        """Update the square's position and handle bouncing."""
-        # Update position
-        self.x += self.vx
-        self.y += self.vy
+# Example player
+player = Player(entity_id="player1", pos=Pos(5, 5, 0), behaviour=None)
+world.players.append(player)
+world.entities.append(player)
 
-        # Bounce off walls
-        if self.x < 0 or self.x > canvas.width - self.size:
-            self.vx = -self.vx
-        if self.y < 0 or self.y > canvas.height - self.size:
-            self.vy = -self.vy
+# 6. Create game engine
+engine = GameEngine(
+    world=world,
+    renderer=render_system,
+    input_sys=input_system,
+    event_bus=event_bus,
+)
 
-    def draw(self) -> None:
-        """Draw the square on the canvas."""
-        ctx.fillStyle = self.color
-        ctx.fillRect(self.x, self.y, self.size, self.size)
-
-
-# Create bouncing square instance
-bouncing_square = BouncingSquare(50, 50, 2, 1.5)
+# ==== GAME LOOP ====
 
 
-def game_loop(_timestamp: float) -> None:
-    """Run the main game loop animation."""
-    # Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+def tick_frame(_timestamp: float) -> None:
+    """Update and render the game in the main loop."""
+    dt = 1 / 60  # fixed timestep for now
 
-    # Update and draw bouncing square
-    bouncing_square.update()
-    bouncing_square.draw()
+    # Update
+    engine.tick(dt)
+
+    # Render
+    engine.render()
 
     # Schedule next frame
-    window.requestAnimationFrame(game_loop_proxy)
+    requestAnimationFrame(create_proxy(tick_frame))
 
 
-# Create a persistent proxy for the loop function
-game_loop_proxy = create_proxy(game_loop)
-
-# Start the loop
-window.requestAnimationFrame(game_loop_proxy)
+# ==== START GAME ====
+requestAnimationFrame(create_proxy(tick_frame))
