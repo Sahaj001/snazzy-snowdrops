@@ -97,7 +97,7 @@ class RenderSystem:
         # 2. Draw entities (players, NPCs, items, etc.)
         for entity in world.entities:
             # Get sprite for this entity type
-            sprite_id = entity.sprite_id if hasattr("sprite_id") else entity.__class__.__name__.lower()
+            sprite_id = entity.sprite_id if hasattr(entity, "sprite_id") else entity.__class__.__name__.lower()
 
             try:
                 sprite = self.sprites.get(sprite_id)
