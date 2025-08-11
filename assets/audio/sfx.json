@@ -1,8 +1,8 @@
 {
-    "walk": { "path": "assets/audio/sfx/walk.mp3", "volume": 0.2 },
-    "btn-click": { "path": "assets/audio/sfx/btn-click.mp3", "volume": 0.2 },
-    "explosion": { "path": "assets/audio/sfx/explosion.mp3", "volume": 0.2 },
-    "jump": { "path": "assets/audio/sfx/jump.mp3", "volume": 0.2 },
-    "sword": { "path": "assets/audio/sfx/sword.mp3", "volume": 0.2 },
-    "water": { "path": "assets/audio/sfx/water.mp3", "volume": 0.2 }
+    "walk": { "path": "assets/audio/sfx/walk.mp3", "volume": 1.0 },
+    "btn-click": { "path": "assets/audio/sfx/btn-click.mp3", "volume": 1.0 },
+    "explosion": { "path": "assets/audio/sfx/explosion.mp3", "volume": 1.0 },
+    "jump": { "path": "assets/audio/sfx/jump.mp3", "volume": 1.0 },
+    "sword": { "path": "assets/audio/sfx/sword.mp3", "volume": 1.0 },
+    "water": { "path": "assets/audio/sfx/water.mp3", "volume": 1.0 }
 }
