@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 class Tree(Entity, Interactable):
     """Represents a tree entity in the game world."""
 
-    def __init__(self, entity_id: str, pos: Pos, behaviour: Behaviour) -> None:
-        super().__init__(entity_id, pos, behaviour)
+    def __init__(self, tree_id: str, pos: Pos, behaviour: Behaviour) -> None:
+        super().__init__(tree_id, pos, behaviour)
 
     def interact(self, actor: Entity) -> None:
         """Allow an actor to interact with the tree, e.g., chop it down or gather resources."""
@@ -26,6 +26,9 @@ class Tree(Entity, Interactable):
     ) -> None:
         """Update the tree's state."""
         # Trees may have seasonal changes or drop fruits
+
+    def __str__(self) -> str:
+        return f"Tree(id={self.id}, pos={self.pos})"
 
 
 class TreeBehaviour(Behaviour):

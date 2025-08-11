@@ -98,9 +98,6 @@ def generate_world(game_tile_map: TileMap) -> World:
         tree = Tree(f"tree_{idx}", pos=Pos(*tree_pos, 0), behaviour=TreeBehaviour())
         game_world.add_entity(tree)
 
-    game_world.players.append(player)
-    game_world.entities.append(player)
-
     return game_world
 
 

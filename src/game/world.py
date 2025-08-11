@@ -3,11 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from models.position import Pos
+
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
     from game.entities.entity import Entity
     from game.entities.player import Player
-    from models.position import Pos
 
 
 @dataclass
@@ -55,13 +56,13 @@ class World:
         self.tiles = tiles
 
     def find_near(self, pos: Pos, radius: int) -> list[Entity]:
-        """Find all entities within `radius` of the given position."""
+        """Find all entities within `radius` of the given position using Chebyshev distance."""
         result = []
-        r2 = radius * radius
         for e in self.entities:
-            dx = e.pos.x - pos.x
-            dy = e.pos.y - pos.y
-            if dx * dx + dy * dy <= r2:
+            dx = abs(e.pos.x - pos.x)
+            dy = abs(e.pos.y - pos.y)
+            distance = max(dx, dy)
+            if distance <= radius:
                 result.append(e)
         return result
 
@@ -107,6 +108,18 @@ class World:
         else:
             print(f"Unhandled input event type: {etype}")
 
+    def _check_if_click_on_entity(
+        self,
+        x: int,
+        y: int,
+        entities: list[Entity],
+    ) -> Entity | None:
+        """Check if a click event intersects with any entity."""
+        for entity in entities:
+            if entity.pos.x == x and entity.pos.y == y:
+                return entity
+        return None
+
     def _handle_click_event(self, payload: dict) -> None:
         """Handle click events to interact with entities."""
         screen_x, screen_y = payload["position"]
@@ -116,12 +129,13 @@ class World:
             screen_x // self.tiles.tile_size,
             screen_y // self.tiles.tile_size,
         )
-        print(f"Click at screen coordinates: ({screen_x}, {screen_y})")
-        print(f"Click at tile coordinates: ({tile_x}, {tile_y})")
 
-        clicked_entity = next(
-            (e for e in self.entities if e.pos.x == tile_x and e.pos.y == tile_y),
-            None,
+        player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
+        entities_in_scope = self.find_near(player_pos, 1)
+        clicked_entity = self._check_if_click_on_entity(
+            tile_x,
+            tile_y,
+            entities_in_scope,
         )
         print(f"Clicked entity: {clicked_entity}")
 

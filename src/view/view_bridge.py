@@ -30,11 +30,6 @@ class ViewBridge:
                 self.input_sys.push_event(InputEvent(InputType.KEYDOWN, evt.key))
             evt.preventDefault()
 
-        def on_key_up(evt: js.KeyBoardEvent) -> None:
-            if self.input_sys:
-                self.input_sys.push_event(InputEvent(InputType.KEYUP, evt.key))
-            evt.preventDefault()
-
         def on_click(evt: js.MouseEvent) -> None:
             if self.input_sys:
                 # Convert click position to canvas coordinates
@@ -45,11 +40,9 @@ class ViewBridge:
             evt.preventDefault()
 
         self.key_down_proxy = create_proxy(on_key_down)
-        self.key_up_proxy = create_proxy(on_key_up)
         self.click_proxy = create_proxy(on_click)
 
         document.addEventListener("keydown", self.key_down_proxy)
-        document.addEventListener("keyup", self.key_up_proxy)
         document.addEventListener("click", self.click_proxy)
 
     def draw(self, cmds: list[DrawCmd]) -> None:
