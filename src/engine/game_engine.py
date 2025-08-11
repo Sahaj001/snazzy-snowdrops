@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
 from engine.input_system import InputType
+from engine.sound_system import SoundSystem
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
@@ -22,11 +23,13 @@ class GameEngine:
         renderer: RenderSystem,
         input_sys: InputSystem,
         event_bus: EventBus,
+        sound_sys: SoundSystem,
     ) -> None:
         self.world = world
         self.renderer = renderer
         self.input = input_sys
         self.event_bus = event_bus
+        self.sound_sys = sound_sys
 
     def tick(self, dt: float) -> None:
         """Advance the game state by dt seconds."""

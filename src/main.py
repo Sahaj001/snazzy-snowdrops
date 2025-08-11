@@ -8,6 +8,7 @@ from engine import (
     GameEngine,
     InputSystem,
     RenderSystem,
+    SoundSystem,
     SpriteRegistry,
 )
 from game import Fruit, Player, Tile, TileMap, Tree, TreeBehaviour, World
@@ -105,12 +106,17 @@ def generate_world(game_tile_map: TileMap) -> World:
 world = generate_world(generate_tile_map())
 
 
-# 6. Create game engine
+# 6. Initialize sound system
+sound_sys = SoundSystem()
+
+
+# 7. Create game engine
 engine = GameEngine(
     world=world,
     renderer=render_system,
     input_sys=input_system,
     event_bus=event_bus,
+    sound_sys=sound_sys,
 )
 
 # ==== GAME LOOP ====
