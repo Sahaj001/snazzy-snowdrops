@@ -1,20 +1,16 @@
 from __future__ import annotations
 
-import json
-
 from js import Audio
 
 
 class SoundSystem:
     _initialized = False
 
-    def __init__(self) -> None:
+    def __init__(self, bgm_map: dict = {}, sfx_map: dict = {}) -> None:
         if not self._initialized:
-            with open("/assets/audio/bgm.json") as bgm_json:
-                self._bgm_map = json.load(bgm_json)
+            self._bgm_map = bgm_map
 
-            with open("/assets/audio/bgm.json") as sfx_json:
-                self._sfx_map = json.load(sfx_json)
+            self._sfx_map = sfx_map
 
             self._bgm = Audio.new()
             self._bgm.loop = True
@@ -47,7 +43,7 @@ class SoundSystem:
             self._sfx.src = audio_file["path"]
             self._sfx.play()
 
-    def __new__(cls) -> SoundSystem:  # noqa: PYI034
+    def __new__(cls, bgm_map: dict = {}, sfx_map: dict = {}) -> SoundSystem:  # noqa: PYI034
         """Singleton pattern: class can only have one instance,
         so multiple audios don't start playing out of nowhere.
         """  # noqa: D205

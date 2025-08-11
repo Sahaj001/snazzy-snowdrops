@@ -23,13 +23,14 @@ class GameEngine:
         renderer: RenderSystem,
         input_sys: InputSystem,
         event_bus: EventBus,
-        sound_sys: SoundSystem,
     ) -> None:
         self.world = world
         self.renderer = renderer
         self.input = input_sys
         self.event_bus = event_bus
-        self.sound_sys = sound_sys
+        self.sound_sys = SoundSystem()
+
+        self.sound_sys.play_bgm("normal")
 
     def tick(self, dt: float) -> None:
         """Advance the game state by dt seconds."""
@@ -41,6 +42,8 @@ class GameEngine:
                 self.event_bus.post(
                     GameEvent("input", {"type": "click", "position": event.position}),
                 )
+
+                self.sound_sys.play_sfx("btn-click")
             elif event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
                 # Handle key events
                 print(f"Key event: {event.input_type} {event.key}")

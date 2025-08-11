@@ -1,6 +1,7 @@
 # Import necessary JS bindings
 from js import document, window
 from pyodide.ffi import create_proxy
+from pyodide.http import pyfetch
 
 from engine import (
     Camera,
@@ -25,7 +26,7 @@ input_system = InputSystem()
 view_bridge = ViewBridge(canvas, input_system)
 
 # 2. Load sprite assets
-view_bridge.load_assets("assets/sprites.json")
+# view_bridge.load_assets("assets/sprites.json")
 
 # 3. Create sprite registry
 sprite_registry = SpriteRegistry()
@@ -108,23 +109,8 @@ def generate_world(game_tile_map: TileMap) -> World:
 world = generate_world(generate_tile_map())
 
 
-# 6. Initialize sound system
-sound_sys = SoundSystem()
-
-
-# 7. Create game engine
-engine = GameEngine(
-    world=world,
-    renderer=render_system,
-    input_sys=input_system,
-    event_bus=event_bus,
-    sound_sys=sound_sys,
-)
-
 # ==== GAME LOOP ====
-
-
-def tick_frame(_timestamp: float | None = None) -> None:
+def tick_frame(_timestamp: float | None = None, *, engine) -> None:
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
@@ -135,8 +121,23 @@ def tick_frame(_timestamp: float | None = None) -> None:
     engine.render()
 
     # Schedule next frame
-    window.requestAnimationFrame(create_proxy(tick_frame))
+    window.requestAnimationFrame(create_proxy(lambda _timestamp: tick_frame(_timestamp, engine=engine)))
 
 
-# ==== START GAME ====
-tick_frame()
+async def start():
+    SoundSystem(
+        bgm_map=await load_json("assets/audio/bgm.json"),
+        sfx_map=await load_json("assets/audio/sfx.json"),
+    )
+    engine = GameEngine(
+        world=world,
+        renderer=render_system,
+        input_sys=input_system,
+        event_bus=event_bus,
+    )
+    tick_frame(engine=engine)
+
+
+async def load_json(path: str) -> dict:
+    res = await pyfetch(path)
+    return await res.json()
