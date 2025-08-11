@@ -1,66 +1,137 @@
-from js import console, document, window
+# Import necessary JS bindings
+from js import document, window
 from pyodide.ffi import create_proxy
 
-console.log("Python script started ✅")
+from engine import (
+    Camera,
+    EventBus,
+    GameEngine,
+    InputSystem,
+    RenderSystem,
+    SpriteRegistry,
+)
+from game import Fruit, Player, Tile, TileMap, Tree, TreeBehaviour, World
+from models import Pos
+from view import ViewBridge
 
+# ==== INITIAL SETUP ====
+
+# 1. Get the HTML canvas and pass to ViewBridge
 canvas = document.getElementById("gameCanvas")
-ctx = canvas.getContext("2d")
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight
+input_system = InputSystem()
+view_bridge = ViewBridge(canvas, input_system)
 
-if ctx is None:
-    console.error("Canvas context is None ❌")
-else:
-    console.log("Canvas context acquired ✅")
+# 2. Load sprite assets
+view_bridge.load_assets("assets/sprites.json")
 
+# 3. Create sprite registry
+sprite_registry = SpriteRegistry()
+sprite_registry.load_from_json("assets/sprites.json")
 
-class BouncingSquare:
-    """A simple bouncing square game object."""
-
-    def __init__(self, x: int, y: int, vx: float, vy: float, size: int = 30) -> None:
-        """Initialize the bouncing square."""
-        self.x = x
-        self.y = y
-        self.vx = vx
-        self.vy = vy
-        self.size = size
-        self.color = "red"
-
-    def update(self) -> None:
-        """Update the square's position and handle bouncing."""
-        # Update position
-        self.x += self.vx
-        self.y += self.vy
-
-        # Bounce off walls
-        if self.x < 0 or self.x > canvas.width - self.size:
-            self.vx = -self.vx
-        if self.y < 0 or self.y > canvas.height - self.size:
-            self.vy = -self.vy
-
-    def draw(self) -> None:
-        """Draw the square on the canvas."""
-        ctx.fillStyle = self.color
-        ctx.fillRect(self.x, self.y, self.size, self.size)
+# 4. Create systems
+camera = Camera(x=0, y=0, screen_w=canvas.width, screen_h=canvas.height)
+render_system = RenderSystem(
+    sprites=sprite_registry,
+    view_bridge=view_bridge,
+    camera=camera,
+)
+event_bus = EventBus()
 
 
-# Create bouncing square instance
-bouncing_square = BouncingSquare(50, 50, 2, 1.5)
+# 5. Create world
+# Provide an initial tiles argument (e.g., an empty list or your map data)
+# Wall placement constants
+VERTICAL_WALL_X = 5
+VERTICAL_WALL_Y_START = 3
+VERTICAL_WALL_Y_END = 8
+HORIZONTAL_WALL_Y = 7
+HORIZONTAL_WALL_X_START = 8
+HORIZONTAL_WALL_X_END = 12
 
 
-def game_loop(_timestamp: float) -> None:
-    """Run the main game loop animation."""
-    # Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+def generate_tile_map() -> TileMap:
+    """Generate a simple tile map for the world."""
+    tile_size = 50  # Pixels per tile
+    width, height = (
+        canvas.width // tile_size,
+        canvas.height // tile_size,
+    )  # Map size in tiles
 
-    # Update and draw bouncing square
-    bouncing_square.update()
-    bouncing_square.draw()
+    game_tile_map = TileMap(width, height, tile_size)
+
+    for y in range(height):
+        for x in range(width):
+            if (
+                x == 0
+                or x == width - 1
+                or y == 0
+                or y == height - 1
+                or (x == VERTICAL_WALL_X and VERTICAL_WALL_Y_START <= y <= VERTICAL_WALL_Y_END)
+                or (y == HORIZONTAL_WALL_Y and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END)
+            ):
+                tile = Tile("wall", passable=False, z=1)
+            else:
+                tile = Tile("grass", passable=True, z=0)
+
+            game_tile_map.set(x, y, tile)
+
+    print("Tile map generated with dimensions:", width, "x", height)
+    print("Tile map data:", game_tile_map.tiles)
+
+    return game_tile_map
+
+
+def generate_world(game_tile_map: TileMap) -> World:
+    """Create a new world with the given tile map."""
+    game_world = World(tiles=game_tile_map)
+    # Example player
+    player = Player(entity_id="player1", pos=Pos(1, 1, 0), behaviour=None)
+    game_world.add_player(player)
+
+    # Entities like tree and fruit
+    for idx, fruit_pos in enumerate([(2, 2), (3, 1), (4, 3)]):
+        fruit = Fruit(f"fruit_{idx}", pos=Pos(*fruit_pos, 0), behaviour=None)
+        game_world.add_entity(fruit)
+
+    for idx, tree_pos in enumerate([(3, 3), (4, 4), (5, 5)]):
+        tree = Tree(f"tree_{idx}", pos=Pos(*tree_pos, 0), behaviour=TreeBehaviour())
+        game_world.add_entity(tree)
+
+    return game_world
+
+
+world = generate_world(generate_tile_map())
+
+
+# 6. Create game engine
+engine = GameEngine(
+    world=world,
+    renderer=render_system,
+    input_sys=input_system,
+    event_bus=event_bus,
+)
+
+# ==== GAME LOOP ====
+
+
+def tick_frame(timestamp: float | None = None) -> None:
+    """Update and render the game in the main loop."""
+    dt = 1 / 60  # fixed timestep for now
+
+    # Update
+    engine.tick(dt)
+
+    # Render
+    engine.render(timestamp)
+
+    # Clear the event bus after processing
+    engine.event_bus.clear()
 
     # Schedule next frame
-    window.requestAnimationFrame(game_loop_proxy)
+    window.requestAnimationFrame(create_proxy(tick_frame))
 
 
-# Create a persistent proxy for the loop function
-game_loop_proxy = create_proxy(game_loop)
-
-# Start the loop
-window.requestAnimationFrame(game_loop_proxy)
+# ==== START GAME ====
+tick_frame()
