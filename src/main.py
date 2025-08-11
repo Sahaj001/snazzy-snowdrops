@@ -66,14 +66,8 @@ def generate_tile_map() -> TileMap:
                 or x == width - 1
                 or y == 0
                 or y == height - 1
-                or (
-                    x == VERTICAL_WALL_X
-                    and VERTICAL_WALL_Y_START <= y <= VERTICAL_WALL_Y_END
-                )
-                or (
-                    y == HORIZONTAL_WALL_Y
-                    and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END
-                )
+                or (x == VERTICAL_WALL_X and VERTICAL_WALL_Y_START <= y <= VERTICAL_WALL_Y_END)
+                or (y == HORIZONTAL_WALL_Y and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END)
             ):
                 tile = Tile("wall", passable=False, z=1)
             else:

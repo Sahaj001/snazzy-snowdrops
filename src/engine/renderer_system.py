@@ -142,10 +142,12 @@ class RenderSystem:
         start_tile_y = max(camera.y // tile_size_pixels, 0)
 
         end_tile_x = min(
-            (camera.x + camera.screen_w) // tile_size_pixels, tile_map.width
+            (camera.x + camera.screen_w) // tile_size_pixels,
+            tile_map.width,
         )
         end_tile_y = min(
-            (camera.y + camera.screen_h) // tile_size_pixels, tile_map.height
+            (camera.y + camera.screen_h) // tile_size_pixels,
+            tile_map.height,
         )
 
         for y in range(start_tile_y, end_tile_y + 1):
@@ -172,11 +174,7 @@ class RenderSystem:
         # 2. Draw entities (players, NPCs, items, etc.)
         for entity in world.entities:
             # Get sprite for this entity type
-            sprite_id = (
-                entity.sprite_id
-                if hasattr(entity, "sprite_id")
-                else entity.__class__.__name__.lower()
-            )
+            sprite_id = entity.sprite_id if hasattr(entity, "sprite_id") else entity.__class__.__name__.lower()
 
             try:
                 sprite = self.sprites.get(sprite_id)
@@ -186,9 +184,9 @@ class RenderSystem:
                     camera.x <= world_pos_x < camera.x + camera.screen_w
                     and camera.y <= world_pos_y < camera.y + camera.screen_h
                 ):
-
                     screen_x, screen_y = camera.world_to_screen(
-                        world_pos_x, world_pos_y
+                        world_pos_x,
+                        world_pos_y,
                     )
 
                     draw_commands.append(
