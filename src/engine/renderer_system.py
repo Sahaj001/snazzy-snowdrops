@@ -90,14 +90,13 @@ class RenderSystem:
 
     def _build_ui_draw_commands(self, world: World, now: float) -> list[DrawCmd]:
         draw_commands = []
-        tile_size = world.tiles.tile_size
         for overlay_id, expiry_time in self.ui_overlays.items():
             if expiry_time > now and overlay_id == "player_info":
                 player = world.get_current_player()
                 player_pos = player.pos
                 hud_position = Pos(
-                    (player_pos.x - 1) * tile_size,
-                    player_pos.y * tile_size,
+                    player_pos.x,
+                    player_pos.y - world.tiles.tile_size / 2,
                     0,
                 )
 
@@ -111,8 +110,8 @@ class RenderSystem:
 
         if self.active_dialog:
             dialog_position = Pos(
-                world.tiles.width * tile_size / 2,
-                world.tiles.height * tile_size / 2,
+                world.tiles.width * world.tiles.tile_size / 2,
+                world.tiles.height * world.tiles.tile_size / 2,
                 0,
             )
             draw_commands.append(

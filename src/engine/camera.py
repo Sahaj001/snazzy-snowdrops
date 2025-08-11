@@ -26,6 +26,10 @@ class Camera:
         """Convert world coordinates to screen coordinates."""
         return x - self.x, y - self.y
 
+    def screen_to_world(self, x: int, y: int) -> tuple[int, int]:
+        """Convert screen coordinates to world coordinates."""
+        return x + self.x, y + self.y
+
     def center_on(self, pos: Pos) -> None:
         """Center the camera on a given world position."""
         self.x = max(0, pos.x - self.screen_w // 2)

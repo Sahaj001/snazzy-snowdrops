@@ -131,22 +131,22 @@ class World:
     ) -> Entity | None:
         """Check if a click event intersects with any entity."""
         for entity in entities:
-            if entity.pos.x == x and entity.pos.y == y:
+            if entity.pos.x // self.tiles.tile_size == x and entity.pos.y // self.tiles.tile_size == y:
                 return entity
         return None
 
     def _handle_click_event(self, payload: dict, event_bus: EventBus) -> None:
         """Handle click events to interact with entities."""
-        screen_x, screen_y = payload["position"]
-        # Convert screen coordinates to tile coordinates
+        world_x, world_y = payload["position"]
 
+        # Convert world coordinates to tile coordinates
         tile_x, tile_y = (
-            screen_x // self.tiles.tile_size,
-            screen_y // self.tiles.tile_size,
+            world_x // self.tiles.tile_size,
+            world_y // self.tiles.tile_size,
         )
 
         player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
-        entities_in_scope = self.find_near(player_pos, 1)
+        entities_in_scope = self.find_near(player_pos, self.tiles.tile_size)
         clicked_entity = self._check_if_click_on_entity(
             tile_x,
             tile_y,
