@@ -50,6 +50,8 @@ class GameEngine:
                 self.sound_sys.play_sfx("btn-click")
             elif event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
                 print(f"Key event: {event.input_type} {event.key}")
+                print("Camera ", self.renderer.camera)
+                print("Player position: ", self.world.get_current_player().pos)
                 event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.INPUT
                 self.event_bus.post(
                     GameEvent(

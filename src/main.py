@@ -40,7 +40,14 @@ sprite_registry = SpriteRegistry()
 sprite_registry.load_from_json("assets/sprites.json")
 
 # 4. Create systems
-camera = Camera(x=2, y=2, screen_w=canvas.width, screen_h=canvas.height)
+camera = Camera(
+    x=2,
+    y=2,
+    screen_w=canvas.width,
+    screen_h=canvas.height,
+    world_max_x=WORLD_HEIGHT_PIXELS,
+    world_max_y=WORLD_WIDTH_PIXELS,
+)
 render_system = RenderSystem(
     sprites=sprite_registry,
     view_bridge=view_bridge,
@@ -75,8 +82,8 @@ def generate_tile_map() -> TileMap:
 
             game_tile_map.set(x, y, tile)
 
-    # print("Tile map generated with dimensions:", width, "x", height)
-    # print("Tile map data:", game_tile_map.tiles)
+    print("Tile map generated with dimensions:", width, "x", height)
+    print("Tile map data:", game_tile_map.tiles)
 
     return game_tile_map
 
@@ -85,15 +92,31 @@ def generate_world(game_tile_map: TileMap) -> World:
     """Create a new world with the given tile map."""
     game_world = World(tiles=game_tile_map)
     # Example player
-    player = Player(entity_id="player1", pos=Pos(10, 10, 0), behaviour=None)
+    player = Player(
+        entity_id="player1",
+        pos=Pos(10 * TILE_SIZE_PIXELS, 10 * TILE_SIZE_PIXELS, 0),
+        behaviour=None,
+    )
     game_world.add_player(player)
 
     # Entities like tree and fruit
-    for idx, fruit_pos in enumerate([(2, 2), (3, 10), (4, 3)]):
+    for idx, fruit_pos in enumerate(
+        [
+            (2 * TILE_SIZE_PIXELS, 2 * TILE_SIZE_PIXELS),
+            (3 * TILE_SIZE_PIXELS, 10 * TILE_SIZE_PIXELS),
+            (4 * TILE_SIZE_PIXELS, 3 * TILE_SIZE_PIXELS),
+        ],
+    ):
         fruit = Fruit(f"fruit_{idx}", pos=Pos(*fruit_pos, 0), behaviour=None)
         game_world.add_entity(fruit)
 
-    for idx, tree_pos in enumerate([(3, 3), (4, 4), (5, 5)]):
+    for idx, tree_pos in enumerate(
+        [
+            (3 * TILE_SIZE_PIXELS, 3 * TILE_SIZE_PIXELS),
+            (4 * TILE_SIZE_PIXELS, 4 * TILE_SIZE_PIXELS),
+            (5 * TILE_SIZE_PIXELS, 5 * TILE_SIZE_PIXELS),
+        ],
+    ):
         tree = Tree(f"tree_{idx}", pos=Pos(*tree_pos, 0), behaviour=TreeBehaviour())
         game_world.add_entity(tree)
 

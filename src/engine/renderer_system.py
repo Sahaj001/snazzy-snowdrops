@@ -86,7 +86,6 @@ class RenderSystem:
         draw_commands = []
         draw_commands.extend(self._build_world_draw_commands(world, camera))
         draw_commands.extend(self._build_ui_draw_commands(world, now))
-        print("Draw commands built:", draw_commands)
         return draw_commands
 
     def _build_ui_draw_commands(self, world: World, now: float) -> list[DrawCmd]:

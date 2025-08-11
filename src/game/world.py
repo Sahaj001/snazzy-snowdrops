@@ -70,7 +70,10 @@ class World:
     def is_passable(self, x: int, y: int) -> bool:
         """Check if a location is passable in the tile map."""
         # First check if the tile itself is passable
-        if not self.tiles.is_passable(x, y):
+        if not self.tiles.is_passable(
+            x // self.tiles.tile_size,
+            y // self.tiles.tile_size,
+        ):
             return False
 
         # Then check if any entity at this position blocks movement
@@ -165,13 +168,13 @@ class World:
             return
 
         if key == "ArrowUp":
-            player.move(0, -1, self)
+            player.move(0, -1 * self.tiles.tile_size, self)
         elif key == "ArrowDown":
-            player.move(0, 1, self)
+            player.move(0, 1 * self.tiles.tile_size, self)
         elif key == "ArrowLeft":
-            player.move(-1, 0, self)
+            player.move(-1 * self.tiles.tile_size, 0, self)
         elif key == "ArrowRight":
-            player.move(1, 0, self)
+            player.move(1 * self.tiles.tile_size, 0, self)
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""
