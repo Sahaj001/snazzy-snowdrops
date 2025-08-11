@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from engine.event_bus import EventType
 from models.position import Pos
 
 if TYPE_CHECKING:
@@ -91,11 +92,22 @@ class World:
         events = event_bus.get_events()
 
         for event in events:
-            if event.event_type == "input":
+            if event.event_type == EventType.INPUT:
                 self._handle_input(event.payload, event_bus)
+                event.consume()
+            elif event.event_type == EventType.FRUIT_PICKED:
+                self._handle_fruit_picked(event.payload)
+                event.consume()
 
         for e in self.entities:
             e.update(self, dt)
+
+    def _handle_fruit_picked(self, payload: dict) -> None:
+        """Handle fruit picked events."""
+        fruit_id = payload.get("fruit_id")
+        fruit = self.get_entity_by_id(fruit_id)
+        if fruit:
+            self.remove_entity(fruit)
 
     def _handle_input(self, payload: dict, event_bus: EventBus) -> None:
         """Handle input events like clicks or key presses."""
@@ -181,6 +193,13 @@ class World:
             self.players.remove(player)
             self.remove_entity(player)
 
-    def get_player(self) -> Player | None:
+    def get_current_player(self) -> Player | None:
         """Get the first player in the world."""
         return self.players[0] if self.players else None
+
+    def get_entity_by_id(self, entity_id: str) -> Entity | None:
+        """Get an entity by its ID."""
+        for entity in self.entities:
+            if entity.id == entity_id:
+                return entity
+        return None

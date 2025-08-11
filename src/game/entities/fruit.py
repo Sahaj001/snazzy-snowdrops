@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from engine.event_bus import EventType, GameEvent
 from engine.interfaces import Behaviour, Interactable, Pos
 from game.entities.entity import Entity
 
@@ -20,12 +21,19 @@ class Fruit(Entity, Interactable):
     ) -> None:
         super().__init__(fruit_id, pos, behaviour)
 
-    def interact(self, actor: Entity, _event_bus: EventBus) -> None:
+    def interact(self, actor: Entity, event_bus: EventBus) -> None:
         """Allow an actor to interact with the fruit, e.g., pick it up."""
         # Example: Add fruit to actor's inventory if available
         if hasattr(actor, "inventory"):
             actor.inventory.add(self.id, 1)
             print(f"{actor.id} picked up {self.id}.")
+
+            event_bus.post(
+                GameEvent(
+                    event_type=EventType.FRUIT_PICKED,
+                    payload={"fruit_id": self.id, "actor_id": actor.id},
+                ),
+            )
 
     def update(
         self,

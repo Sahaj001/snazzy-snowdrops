@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from engine.event_bus import EventBus, GameEvent
+from engine.event_bus import EventBus, EventType, GameEvent
 from engine.interfaces import Behaviour, Interactable, Living
 from game.entities.entity import Entity
 from game.inventory import Inventory
@@ -56,7 +56,7 @@ class Player(Entity, Living, Interactable):
         print(f"{self.id} interacts with player.")
         event_bus.post(
             GameEvent(
-                "ui_update",
+                event_type=EventType.UI_UPDATE,
                 payload={
                     "overlay_id": "player_info",
                     "inventory": self.inventory.slots,
@@ -65,10 +65,11 @@ class Player(Entity, Living, Interactable):
             ),
         )
 
-    def get_hud_info(self) -> dict:
+    def get_hud_info(self) -> str:
         """Get player HUD information."""
-        return {
+        hud_info = {
             "id": self.id,
             "hp": self.hp,
             "inventory": self.inventory.slots,
         }
+        return str(hud_info)

@@ -1,14 +1,28 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
+
+
+class EventType(Enum):
+    """Types of events that can be posted to the EventBus."""
+
+    INPUT = "input"
+    UI_UPDATE = "ui_update"
+    FRUIT_PICKED = "fruit_picked"
 
 
 @dataclass
 class GameEvent:
     """Represents a game-wide event."""
 
-    event_type: str
+    event_type: EventType
     payload: dict
+    is_consumed: bool = False
+
+    def consume(self) -> None:
+        """Mark the event as consumed."""
+        self.is_consumed = True
 
 
 class EventBus:
@@ -27,4 +41,5 @@ class EventBus:
 
     def clear(self) -> None:
         """Clear the event queue."""
-        self._queue.clear()
+        # only clear events that are consumed
+        self._queue = [evt for evt in self._queue if not evt.is_consumed]

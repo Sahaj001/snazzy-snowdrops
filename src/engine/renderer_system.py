@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from engine.event_bus import EventType
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
 from models.sprite import Sprite, SpriteType
@@ -90,8 +91,7 @@ class RenderSystem:
         tile_size = world.tiles.tile_size
         for overlay_id, expiry_time in self.ui_overlays.items():
             if expiry_time > now and overlay_id == "player_info":
-                player = world.get_player()
-                hud_info = player.get_hud_info() if player else {}
+                player = world.get_current_player()
                 player_pos = player.pos
                 hud_position = Pos(
                     (player_pos.x - 1) * tile_size,
@@ -102,7 +102,7 @@ class RenderSystem:
                 draw_commands.append(
                     DrawCmd(
                         type=DrawCmdType.TEXT,
-                        text=f"Player ID: {hud_info.get('id', 'N/A')}, HP: {hud_info.get('hp', 0)}",
+                        text=player.get_hud_info(),
                         position=hud_position,
                     ),
                 )
@@ -190,9 +190,10 @@ class RenderSystem:
         # Handle any events related to rendering, e.g., UI updates
         events = event_bus.get_events()
         for event in events:
-            if event.event_type == "ui_update":
+            if event.event_type == EventType.UI_UPDATE:
                 overlay_id = event.payload.get("overlay_id")
                 self.ui_overlays[overlay_id] = event.payload.get(
                     "expiry_time",
-                    now + 5 * 1000,
+                    now + 5 * 1000,  # Default 5 seconds expiry
                 )
+                event.consume()
