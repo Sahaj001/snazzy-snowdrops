@@ -26,6 +26,11 @@ async function main() {
     // Make the canvas available to Python
     const canvas = document.getElementById('gameCanvas');
     pyodide.globals.set('canvas', canvas);
+
+
+    // window.addEventListener("resize", () => {
+    //     pyodide.runPython("import main; main.on_resize()");
+    // });
 }
 
 main();

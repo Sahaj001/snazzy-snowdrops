@@ -1,4 +1,5 @@
 # Import necessary JS bindings
+import js
 from js import document, window
 from pyodide.ffi import create_proxy
 from pyodide.http import pyfetch
@@ -28,37 +29,7 @@ WORLD_WIDTH_PIXELS = 2000
 WORLD_HEIGHT_PIXELS = 2000
 TILE_SIZE_PIXELS = 50  # pixels
 
-# 1. Get the HTML canvas and pass to ViewBridge
-canvas = document.getElementById("gameCanvas")
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight
-input_system = InputSystem()
-view_bridge = ViewBridge(canvas, input_system)
 
-# 2. Create sprite registry
-sprite_registry = SpriteRegistry()
-sprite_registry.load_from_json("assets/sprites.json")
-
-# 4. Create systems
-camera = Camera(
-    x=2,
-    y=2,
-    screen_w=canvas.width,
-    screen_h=canvas.height,
-    world_max_x=WORLD_HEIGHT_PIXELS,
-    world_max_y=WORLD_WIDTH_PIXELS,
-)
-render_system = RenderSystem(
-    sprites=sprite_registry,
-    view_bridge=view_bridge,
-    camera=camera,
-)
-event_bus = EventBus()
-
-
-# 4. Create world
-# Provide an initial tiles argument (e.g., an empty list or your map data)
-# Wall placement constants
 def generate_tile_map() -> TileMap:
     """Generate a simple tile map for the world."""
     tile_size = TILE_SIZE_PIXELS  # Pixels per tile
@@ -73,8 +44,14 @@ def generate_tile_map() -> TileMap:
                 or x == width - 1
                 or y == 0
                 or y == height - 1
-                or (x == VERTICAL_WALL_X and VERTICAL_WALL_Y_START <= y <= VERTICAL_WALL_Y_END)
-                or (y == HORIZONTAL_WALL_Y and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END)
+                or (
+                    x == VERTICAL_WALL_X
+                    and VERTICAL_WALL_Y_START <= y <= VERTICAL_WALL_Y_END
+                )
+                or (
+                    y == HORIZONTAL_WALL_Y
+                    and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END
+                )
             ):
                 tile = Tile("wall", passable=False, z=1)
             else:
@@ -126,6 +103,62 @@ def generate_world(game_tile_map: TileMap) -> World:
 world = generate_world(generate_tile_map())
 
 
+async def create_engine() -> GameEngine:
+    """Create and return the game engine."""
+    # Ensure all systems are initialized
+    await load_json("assets/audio/bgm.json")
+    await load_json("assets/audio/sfx.json")
+
+    canvas = document.getElementById("gameCanvas")
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    input_system = InputSystem()
+    view_bridge = ViewBridge(canvas, input_system)
+
+    sprite_registry = SpriteRegistry()
+    sprite_registry.load_from_json("assets/sprites.json")
+
+    # 4. Create systems
+    camera = Camera(
+        x=2,
+        y=2,
+        screen_w=canvas.width,
+        screen_h=canvas.height,
+        world_max_x=WORLD_HEIGHT_PIXELS,
+        world_max_y=WORLD_WIDTH_PIXELS,
+    )
+    render_system = RenderSystem(
+        sprites=sprite_registry,
+        view_bridge=view_bridge,
+        camera=camera,
+    )
+    event_bus = EventBus()
+    world = generate_world(generate_tile_map())
+
+    sound_sys = SoundSystem(
+        bgm_map=await load_json("assets/audio/bgm.json"),
+        sfx_map=await load_json("assets/audio/sfx.json"),
+    )
+    return GameEngine(
+        world=world,
+        renderer=render_system,
+        input_sys=input_system,
+        event_bus=event_bus,
+        sound_sys=sound_sys,
+    )
+
+
+def on_resize(engine: GameEngine) -> None:
+    """Handle window resize events to update canvas and camera."""
+    # Update canvas size
+    engine.renderer.view_bridge.canvas.width = document.documentElement.clientWidth
+    engine.renderer.view_bridge.canvas.height = document.documentElement.clientHeight
+
+    # Update camera viewport
+    engine.renderer.camera.screen_w = engine.renderer.view_bridge.canvas.width
+    engine.renderer.camera.screen_h = engine.renderer.view_bridge.canvas.height
+
+
 # ==== GAME LOOP ====
 def tick_frame(timestamp: float | None = None, *, engine) -> None:  # noqa: ANN001
     """Update and render the game in the main loop."""
@@ -149,17 +182,15 @@ def tick_frame(timestamp: float | None = None, *, engine) -> None:  # noqa: ANN0
 
 
 async def start() -> None:
-    sound_sys = SoundSystem(
-        bgm_map=await load_json("assets/audio/bgm.json"),
-        sfx_map=await load_json("assets/audio/sfx.json"),
-    )
-    engine = GameEngine(
-        world=world,
-        renderer=render_system,
-        input_sys=input_system,
-        event_bus=event_bus,
-        sound_sys=sound_sys,
-    )
+    """Initialize the game engine and start the game loop."""
+    engine = await create_engine()
+
+    def handle_resize(event: js.Event) -> None:
+        """Handle window resize events."""
+        on_resize(engine)
+
+    window.addEventListener("resize", create_proxy(handle_resize))
+
     tick_frame(engine=engine)
 
 
