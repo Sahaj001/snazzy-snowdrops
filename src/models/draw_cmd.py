@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from ui.dialog import DialogBox
+
 from .position import Pos
 from .sprite import Sprite
 
@@ -10,6 +12,7 @@ class DrawCmdType(Enum):
 
     SPRITE = "sprite"
     TEXT = "text"
+    DIALOG = "dialog"
 
 
 @dataclass
@@ -19,9 +22,10 @@ class DrawCmd:
     This decouples rendering from game logic.
     """
 
-    position: Pos  # Where to draw it in world coordinates
+    position: Pos
     type: DrawCmdType = DrawCmdType.SPRITE
-    sprite: Sprite | None = None  # What to draw (sprite asset)
+    sprite: Sprite | None = None
+    dialog: DialogBox | None = None
     text: str | None = None
     layer: int = 0  # Rendering order (higher = drawn later, on top)
     rotation: float = 0.0  # Rotation in degrees

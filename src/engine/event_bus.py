@@ -9,6 +9,8 @@ class EventType(Enum):
 
     INPUT = "input"
     UI_UPDATE = "ui_update"
+    ASK_DIALOG = "ask_dialog"
+    DIALOG_INPUT = "dialog_input"
     FRUIT_PICKED = "fruit_picked"
 
 

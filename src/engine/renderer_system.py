@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from engine.event_bus import EventType
+from engine.event_bus import EventType, GameEvent
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
 from models.sprite import Sprite, SpriteType
+from ui.dialog import DialogBox
 
 if TYPE_CHECKING:
     from engine.camera import Camera
@@ -73,6 +74,7 @@ class RenderSystem:
         self.view_bridge = view_bridge
         self.camera = camera
         self.ui_overlays = {}  # overlay_id / sprite_id -> expiry_time
+        self.active_dialog: DialogBox | None = None
 
     def build_draw_queue(
         self,
@@ -106,6 +108,20 @@ class RenderSystem:
                         position=hud_position,
                     ),
                 )
+
+        if self.active_dialog:
+            dialog_position = Pos(
+                world.tiles.width * tile_size / 2,
+                world.tiles.height * tile_size / 2,
+                0,
+            )
+            draw_commands.append(
+                DrawCmd(
+                    type=DrawCmdType.DIALOG,
+                    dialog=self.active_dialog,
+                    position=dialog_position,
+                ),
+            )
 
         return draw_commands
 
@@ -191,9 +207,54 @@ class RenderSystem:
         events = event_bus.get_events()
         for event in events:
             if event.event_type == EventType.UI_UPDATE:
-                overlay_id = event.payload.get("overlay_id")
-                self.ui_overlays[overlay_id] = event.payload.get(
-                    "expiry_time",
-                    now + 5 * 1000,  # Default 5 seconds expiry
+                self._handle_ui_update_event(event, now)
+            elif event.event_type == EventType.ASK_DIALOG:
+                self._handle_ask_dialog_event(event)
+            elif event.event_type == EventType.DIALOG_INPUT:
+                self._handle_dialog_input_event(event)
+
+    def _handle_ui_update_event(self, event: GameEvent, now: float) -> None:
+        """Handle UI update events."""
+        overlay_id = event.payload.get("overlay_id")
+        expiry_time = event.payload.get("expiry_time", now + 5000)
+        self.ui_overlays[overlay_id] = expiry_time
+        print(f"UI overlay '{overlay_id}' added with expiry time {expiry_time}.")
+        event.consume()
+
+    def _handle_ask_dialog_event(self, event: GameEvent) -> None:
+        """Handle dialog events."""
+        dialog = event.payload.get("dialog")
+        callback = event.payload.get("callback", None)
+        options = event.payload.get("options", [])
+        selected_index = event.payload.get("selected_index", 0)
+        self.active_dialog = DialogBox(
+            text=dialog,
+            options=options,
+            selected_index=selected_index,
+            callback=callback,
+        )
+        event.consume()
+
+    def _handle_dialog_input_event(self, event: GameEvent) -> None:
+        """Handle dialog input events."""
+        if self.active_dialog:
+            key = event.payload.get("key")
+            if key == "ArrowLeft":
+                self.active_dialog.selected_index = max(
+                    0,
+                    self.active_dialog.selected_index - 1,
                 )
-                event.consume()
+            elif key == "ArrowRight":
+                self.active_dialog.selected_index = min(
+                    len(self.active_dialog.options) - 1,
+                    self.active_dialog.selected_index + 1,
+                )
+            elif key == "Enter":
+                if self.active_dialog.callback:
+                    self.active_dialog.callback(
+                        self.active_dialog.options[self.active_dialog.selected_index],
+                    )
+                self.active_dialog = None
+            elif key == "Escape":
+                self.active_dialog = None
+        event.consume()

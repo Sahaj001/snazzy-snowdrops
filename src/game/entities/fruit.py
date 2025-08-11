@@ -23,7 +23,22 @@ class Fruit(Entity, Interactable):
 
     def interact(self, actor: Entity, event_bus: EventBus) -> None:
         """Allow an actor to interact with the fruit, e.g., pick it up."""
-        # Example: Add fruit to actor's inventory if available
+        # ask the actor to pick up the fruit
+        event_bus.post(
+            GameEvent(
+                event_type=EventType.ASK_DIALOG,
+                payload={
+                    "dialog": f"{actor.id} wants to pick up {self.id}.",
+                    "callback": lambda answer: (self.pick_up(actor, event_bus) if answer == "Yes" else None),
+                    "options": ["Yes", "No"],
+                    "selected_index": 0,
+                },
+            ),
+        )
+        print(f"pushing interaction event for {self.id} by {actor.id}")
+
+    def pick_up(self, actor: Entity, event_bus: EventBus) -> None:
+        """Handle the logic for picking up the fruit."""
         if hasattr(actor, "inventory"):
             actor.inventory.add(self.id, 1)
             print(f"{actor.id} picked up {self.id}.")

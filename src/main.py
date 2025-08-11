@@ -91,8 +91,9 @@ def generate_world(game_tile_map: TileMap) -> World:
     game_world.add_player(player)
 
     # Entities like tree and fruit
-    fruit = Fruit("fruit1", pos=Pos(12, 2, 0), behaviour=None)
-    game_world.add_entity(fruit)
+    for idx, fruit_pos in enumerate([(2, 2), (3, 1), (4, 3)]):
+        fruit = Fruit(f"fruit_{idx}", pos=Pos(*fruit_pos, 0), behaviour=None)
+        game_world.add_entity(fruit)
 
     for idx, tree_pos in enumerate([(3, 3), (4, 4), (5, 5)]):
         tree = Tree(f"tree_{idx}", pos=Pos(*tree_pos, 0), behaviour=TreeBehaviour())

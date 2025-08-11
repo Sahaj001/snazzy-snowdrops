@@ -43,9 +43,10 @@ class GameEngine:
                 )
             elif event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
                 print(f"Key event: {event.input_type} {event.key}")
+                event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.INPUT
                 self.event_bus.post(
                     GameEvent(
-                        event_type=EventType.INPUT,
+                        event_type=event_type,
                         payload={"type": "key", "key": event.key},
                     ),
                 )
