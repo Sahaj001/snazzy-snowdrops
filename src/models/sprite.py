@@ -12,7 +12,7 @@ class SpriteType(Enum):
     LINE = "line"  # Line drawing
     POLYGON = "polygon"  # Custom polygon
     TILE = "tile"  # Tile sprite (for tilemaps)
-    EDIBLE = "edible" # Edible entities
+    EDIBLE = "edible"  # Edible entities
 
 
 @dataclass
