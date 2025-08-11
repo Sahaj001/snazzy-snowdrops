@@ -115,7 +115,7 @@ engine = GameEngine(
 # ==== GAME LOOP ====
 
 
-def tick_frame(_timestamp: float | None = None) -> None:
+def tick_frame(timestamp: float | None = None) -> None:
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
@@ -123,7 +123,10 @@ def tick_frame(_timestamp: float | None = None) -> None:
     engine.tick(dt)
 
     # Render
-    engine.render()
+    engine.render(timestamp)
+
+    # Clear the event bus after processing
+    engine.event_bus.clear()
 
     # Schedule next frame
     window.requestAnimationFrame(create_proxy(tick_frame))

@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from engine.interfaces import Behaviour, Interactable, Pos
 from game.entities.entity import Entity
+
+if TYPE_CHECKING:
+    from engine.event_bus import EventBus
 
 
 class Fruit(Entity, Interactable):
@@ -15,7 +20,7 @@ class Fruit(Entity, Interactable):
     ) -> None:
         super().__init__(fruit_id, pos, behaviour)
 
-    def interact(self, actor: Entity) -> None:
+    def interact(self, actor: Entity, _event_bus: EventBus) -> None:
         """Allow an actor to interact with the fruit, e.g., pick it up."""
         # Example: Add fruit to actor's inventory if available
         if hasattr(actor, "inventory"):

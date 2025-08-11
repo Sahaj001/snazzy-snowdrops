@@ -21,8 +21,10 @@ class EventBus:
         """Post a new event to the queue."""
         self._queue.append(evt)
 
-    def poll(self) -> list[GameEvent]:
+    def get_events(self) -> list[GameEvent]:
         """Retrieve and clear all events in the queue."""
-        events = self._queue[:]
+        return list(self._queue)
+
+    def clear(self) -> None:
+        """Clear the event queue."""
         self._queue.clear()
-        return events

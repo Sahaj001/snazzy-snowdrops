@@ -39,18 +39,17 @@ class GameEngine:
                     GameEvent("input", {"type": "click", "position": event.position}),
                 )
             elif event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
-                # Handle key events
                 print(f"Key event: {event.input_type} {event.key}")
                 self.event_bus.post(
                     GameEvent("input", {"type": "key", "key": event.key}),
                 )
 
         self.world.update(dt, self.event_bus)
-        self.render()
 
-    def render(self) -> None:
+    def render(self, now: float) -> None:
         """Render the current game state."""
-        cmds = self.renderer.build_draw_queue(self.world, self.renderer.camera)
+        self.renderer.update(now, self.event_bus)
+        cmds = self.renderer.build_draw_queue(self.world, self.renderer.camera, now)
         self.renderer.flush_to_view(cmds)
 
     def spawn(self, e: Entity) -> None:

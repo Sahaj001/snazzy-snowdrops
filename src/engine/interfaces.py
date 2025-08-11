@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Protocol
 from models.position import Pos
 
 if TYPE_CHECKING:
+    from engine.event_bus import EventBus
     from game.entities.entity import Entity
 
 
@@ -31,7 +32,7 @@ class Behaviour(Protocol):
 class Interactable(Protocol):
     """Marks an entity as interactable by players or NPCs."""
 
-    def interact(self, actor: "Entity") -> None:
+    def interact(self, actor: "Entity", event_bus: "EventBus") -> None:
         """Perform an interaction with the given actor."""
 
 

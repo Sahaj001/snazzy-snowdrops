@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from models.draw_cmd import DrawCmd
+from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
 from models.sprite import Sprite, SpriteType
 
 if TYPE_CHECKING:
     from engine.camera import Camera
+    from engine.event_bus import EventBus
     from game.world import World
     from view.view_bridge import ViewBridge
 
@@ -20,7 +21,7 @@ class SpriteRegistry:
 
     def get(self, sprite_id: str) -> Sprite:
         """Retrieve a sprite by its ID."""
-        return self._sprites[sprite_id]
+        return self._sprites.get(sprite_id, None)
 
     def load_from_json(self, _path: str) -> None:
         """Load sprite metadata from a JSON file."""
@@ -37,7 +38,7 @@ class SpriteRegistry:
             size=(sprite_size, sprite_size),
         )
         self._sprites["fruit"] = Sprite(
-            type=SpriteType.TILE,
+            type=SpriteType.EDIBLE,
             image_path="assets/sprites/fruit.png",
             size=(sprite_size, sprite_size),
         )
@@ -51,8 +52,8 @@ class SpriteRegistry:
             image_path="assets/sprites/tree.png",
             size=(sprite_size, sprite_size),
         )
-        self._sprites["fruit"] = Sprite(
-            type=SpriteType.EDIBLE,
+        self._sprites["player_info"] = Sprite(
+            type=SpriteType.SPRITE,
             image_path="assets/sprites/fruit.png",
             size=(sprite_size, sprite_size),
         )
@@ -70,8 +71,49 @@ class RenderSystem:
         self.sprites = sprites
         self.view_bridge = view_bridge
         self.camera = camera
+        self.ui_overlays = {}  # overlay_id / sprite_id -> expiry_time
 
-    def build_draw_queue(self, world: World, _camera: Camera) -> list[DrawCmd]:
+    def build_draw_queue(
+        self,
+        world: World,
+        camera: Camera,
+        now: float,
+    ) -> list[DrawCmd]:
+        """Generate a list of draw commands based on the current world state."""
+        draw_commands = []
+        draw_commands.extend(self._build_world_draw_commands(world, camera))
+        draw_commands.extend(self._build_ui_draw_commands(world, now))
+        return draw_commands
+
+    def _build_ui_draw_commands(self, world: World, now: float) -> list[DrawCmd]:
+        draw_commands = []
+        tile_size = world.tiles.tile_size
+        for overlay_id, expiry_time in self.ui_overlays.items():
+            if expiry_time > now and overlay_id == "player_info":
+                player = world.get_player()
+                hud_info = player.get_hud_info() if player else {}
+                player_pos = player.pos
+                hud_position = Pos(
+                    (player_pos.x - 1) * tile_size,
+                    player_pos.y * tile_size,
+                    0,
+                )
+
+                draw_commands.append(
+                    DrawCmd(
+                        type=DrawCmdType.TEXT,
+                        text=f"Player ID: {hud_info.get('id', 'N/A')}, HP: {hud_info.get('hp', 0)}",
+                        position=hud_position,
+                    ),
+                )
+
+        return draw_commands
+
+    def _build_world_draw_commands(
+        self,
+        world: World,
+        _camera: Camera,
+    ) -> list[DrawCmd]:
         """Generate a list of draw commands based on the current world state."""
         draw_commands = []
 
@@ -94,6 +136,7 @@ class RenderSystem:
                     # Create draw command
                     draw_commands.append(
                         DrawCmd(
+                            type=DrawCmdType.SPRITE,
                             sprite=sprite,
                             position=Pos(screen_x, screen_y, tile.z),
                             layer=tile.z,
@@ -114,6 +157,7 @@ class RenderSystem:
 
                 draw_commands.append(
                     DrawCmd(
+                        type=DrawCmdType.SPRITE,
                         sprite=sprite,
                         position=Pos(screen_x, screen_y, entity.pos.z),
                         layer=entity.pos.z + 10,  # Entities above tiles
@@ -132,3 +176,23 @@ class RenderSystem:
     def flush_to_view(self, cmds: list[DrawCmd]) -> None:
         """Send the draw commands to the view for rendering."""
         self.view_bridge.draw(cmds)
+
+    def add_ui_overlay(self, overlay_id: str, expiry_time: float) -> None:
+        """Add a UI overlay that will expire after a certain time."""
+        self.ui_overlays[overlay_id] = expiry_time
+
+    def update(self, now: float, event_bus: EventBus) -> None:
+        """Update the renderer state, e.g., handle UI overlays."""
+        expired = [k for k, expiry in self.ui_overlays.items() if now > expiry]
+        for k in expired:
+            del self.ui_overlays[k]
+
+        # Handle any events related to rendering, e.g., UI updates
+        events = event_bus.get_events()
+        for event in events:
+            if event.event_type == "ui_update":
+                overlay_id = event.payload.get("overlay_id")
+                self.ui_overlays[overlay_id] = event.payload.get(
+                    "expiry_time",
+                    now + 5 * 1000,
+                )

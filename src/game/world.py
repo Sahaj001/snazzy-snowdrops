@@ -88,23 +88,23 @@ class World:
 
     def update(self, dt: float, event_bus: EventBus) -> None:
         """Update all entities in the world."""
-        events = event_bus.poll()
+        events = event_bus.get_events()
 
         for event in events:
             if event.event_type == "input":
-                self._handle_input(event.payload)
+                self._handle_input(event.payload, event_bus)
 
         for e in self.entities:
             e.update(self, dt)
 
-    def _handle_input(self, payload: dict) -> None:
+    def _handle_input(self, payload: dict, event_bus: EventBus) -> None:
         """Handle input events like clicks or key presses."""
         print("_handle_input payload", payload)
         etype = payload["type"]
         if etype == "key":
             self._handle_key_event(payload)
         elif etype == "click":
-            self._handle_click_event(payload)
+            self._handle_click_event(payload, event_bus)
         else:
             print(f"Unhandled input event type: {etype}")
 
@@ -120,7 +120,7 @@ class World:
                 return entity
         return None
 
-    def _handle_click_event(self, payload: dict) -> None:
+    def _handle_click_event(self, payload: dict, event_bus: EventBus) -> None:
         """Handle click events to interact with entities."""
         screen_x, screen_y = payload["position"]
         # Convert screen coordinates to tile coordinates
@@ -140,7 +140,10 @@ class World:
         print(f"Clicked entity: {clicked_entity}")
 
         if clicked_entity and hasattr(clicked_entity, "interact"):
-            clicked_entity.interact(self.players[0] if self.players else None)
+            clicked_entity.interact(
+                self.players[0] if self.players else None,
+                event_bus,
+            )
 
     def _handle_key_event(self, payload: dict) -> None:
         key = payload["key"]
@@ -177,3 +180,7 @@ class World:
         if player in self.players:
             self.players.remove(player)
             self.remove_entity(player)
+
+    def get_player(self) -> Player | None:
+        """Get the first player in the world."""
+        return self.players[0] if self.players else None

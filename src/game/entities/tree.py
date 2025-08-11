@@ -6,6 +6,7 @@ from engine.interfaces import Behaviour, Interactable
 from game.entities.entity import Entity
 
 if TYPE_CHECKING:
+    from engine.event_bus import EventBus
     from engine.interfaces import Pos
 
 
@@ -15,7 +16,7 @@ class Tree(Entity, Interactable):
     def __init__(self, tree_id: str, pos: Pos, behaviour: Behaviour) -> None:
         super().__init__(tree_id, pos, behaviour)
 
-    def interact(self, actor: Entity) -> None:
+    def interact(self, actor: Entity, _event_bus: EventBus) -> None:
         """Allow an actor to interact with the tree, e.g., chop it down or gather resources."""
         print(f"{actor.id} interacts with tree {self.id}")
 

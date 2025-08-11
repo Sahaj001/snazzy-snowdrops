@@ -7,11 +7,14 @@ from js import Image, document
 from pyodide.ffi import create_proxy
 
 from engine.input_system import InputEvent, InputSystem, InputType
+from models.draw_cmd import DrawCmdType
 
 if TYPE_CHECKING:
     from js import HTMLCanvasElement
 
     from models.draw_cmd import DrawCmd
+    from models.position import Pos
+    from models.sprite import Sprite
 
 
 class ViewBridge:
@@ -52,12 +55,47 @@ class ViewBridge:
 
         # Process each draw command
         for cmd in cmds:
-            sprite = cmd.sprite
-            img = self._load_image(sprite.image_path)  # helper
+            if cmd.type == DrawCmdType.SPRITE:
+                self.draw_sprite(cmd.sprite, cmd.position)
+            elif cmd.type == DrawCmdType.TEXT:
+                self.draw_text(
+                    cmd.text,
+                    cmd.position,
+                )
 
-            x, y = cmd.position.x, cmd.position.y
-            w, h = sprite.size
-            self.ctx.drawImage(img, x, y, w, h)
+    def draw_sprite(self, sprite: Sprite, position: Pos) -> None:
+        """Draw a single sprite at a given position."""
+        img = self._load_image(sprite.image_path)
+        x, y = position.x, position.y
+        w, h = sprite.size
+        self.ctx.drawImage(img, x, y, w, h)
+
+    def draw_text(
+        self,
+        text: str,
+        position: Pos,
+        font: str = "16px Arial",
+        color: str = "white",
+        background_color: str = "rgba(0,0,0,0.7)",
+    ) -> None:
+        """Draws text with a background like a HUD or popup."""
+        self.ctx.font = font
+        self.ctx.fillStyle = background_color
+
+        padding: int = 6
+        metrics = self.ctx.measureText(text)
+        text_width = metrics.width
+        text_height = int(font.split("px")[0])
+
+        self.ctx.fillRect(
+            position.x - padding,
+            position.y - text_height,
+            text_width + padding * 2,
+            text_height + padding,
+        )
+
+        self.ctx.fillStyle = color
+        self.ctx.fillText(text, position.x, position.y)
 
     def _load_image(self, path: str) -> Image:
         """Cache and return HTMLImageElement for a given path."""

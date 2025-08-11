@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from engine.interfaces import Behaviour, Living
+from engine.event_bus import EventBus, GameEvent
+from engine.interfaces import Behaviour, Interactable, Living
 from game.entities.entity import Entity
 from game.inventory import Inventory
 
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
     from models.position import Pos
 
 
-class Player(Entity, Living):
+class Player(Entity, Living, Interactable):
     """Player character in the game world."""
 
     def __init__(
@@ -49,3 +50,25 @@ class Player(Entity, Living):
     def take_damage(self, n: int) -> None:
         """Reduce player's HP by n, ensuring it doesn't go below 0."""
         self.hp = max(self.hp - n, 0)
+
+    def interact(self, _actor: Entity, event_bus: EventBus) -> None:
+        """Handle interaction with the player, e.g., opening inventory."""
+        print(f"{self.id} interacts with player.")
+        event_bus.post(
+            GameEvent(
+                "ui_update",
+                payload={
+                    "overlay_id": "player_info",
+                    "inventory": self.inventory.slots,
+                    "hp": self.hp,
+                },
+            ),
+        )
+
+    def get_hud_info(self) -> dict:
+        """Get player HUD information."""
+        return {
+            "id": self.id,
+            "hp": self.hp,
+            "inventory": self.inventory.slots,
+        }
