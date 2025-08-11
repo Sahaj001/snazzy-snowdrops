@@ -7,7 +7,11 @@ if TYPE_CHECKING:
 
 
 class Camera:
-    """Defines the viewport over the world."""
+    """Defines the viewport over the world.
+
+    x,y -> pixel
+    screen_w, screen_h -> pixel
+    """
 
     def __init__(self, x: int, y: int, screen_w: int, screen_h: int) -> None:
         self.x = x

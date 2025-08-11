@@ -86,6 +86,7 @@ class RenderSystem:
         draw_commands = []
         draw_commands.extend(self._build_world_draw_commands(world, camera))
         draw_commands.extend(self._build_ui_draw_commands(world, now))
+        print("Draw commands built:", draw_commands)
         return draw_commands
 
     def _build_ui_draw_commands(self, world: World, now: float) -> list[DrawCmd]:
@@ -128,26 +129,35 @@ class RenderSystem:
     def _build_world_draw_commands(
         self,
         world: World,
-        _camera: Camera,
+        camera: Camera,
     ) -> list[DrawCmd]:
         """Generate a list of draw commands based on the current world state."""
         draw_commands = []
 
         # 1. Draw tiles from the tile map
         tile_map = world.tiles
-        tile_size = tile_map.tile_size
+        tile_size_pixels = tile_map.tile_size  # pixels
 
-        # Draw all tiles (no camera culling for now)
-        for y in range(tile_map.height):
-            for x in range(tile_map.width):
+        start_tile_x = max(camera.x // tile_size_pixels, 0)
+        start_tile_y = max(camera.y // tile_size_pixels, 0)
+
+        end_tile_x = min(
+            (camera.x + camera.screen_w) // tile_size_pixels, tile_map.width
+        )
+        end_tile_y = min(
+            (camera.y + camera.screen_h) // tile_size_pixels, tile_map.height
+        )
+
+        for y in range(start_tile_y, end_tile_y + 1):
+            for x in range(start_tile_x, end_tile_x + 1):
                 tile = tile_map.get(x, y)
                 if tile:
-                    # Get the sprite for this tile type
                     sprite = self.sprites.get(tile.sprite_id)
 
-                    # Calculate screen position directly from tile coordinates
-                    screen_x = x * tile_size
-                    screen_y = y * tile_size
+                    world_x = x * tile_size_pixels
+                    world_y = y * tile_size_pixels
+
+                    screen_x, screen_y = camera.world_to_screen(world_x, world_y)
 
                     # Create draw command
                     draw_commands.append(
@@ -162,23 +172,33 @@ class RenderSystem:
         # 2. Draw entities (players, NPCs, items, etc.)
         for entity in world.entities:
             # Get sprite for this entity type
-            sprite_id = entity.sprite_id if hasattr(entity, "sprite_id") else entity.__class__.__name__.lower()
+            sprite_id = (
+                entity.sprite_id
+                if hasattr(entity, "sprite_id")
+                else entity.__class__.__name__.lower()
+            )
 
             try:
                 sprite = self.sprites.get(sprite_id)
 
-                # Calculate screen position directly from entity position
-                screen_x = entity.pos.x * tile_size
-                screen_y = entity.pos.y * tile_size
+                world_pos_x, world_pos_y = entity.pos.x, entity.pos.y
+                if (
+                    camera.x <= world_pos_x < camera.x + camera.screen_w
+                    and camera.y <= world_pos_y < camera.y + camera.screen_h
+                ):
 
-                draw_commands.append(
-                    DrawCmd(
-                        type=DrawCmdType.SPRITE,
-                        sprite=sprite,
-                        position=Pos(screen_x, screen_y, entity.pos.z),
-                        layer=entity.pos.z + 10,  # Entities above tiles
-                    ),
-                )
+                    screen_x, screen_y = camera.world_to_screen(
+                        world_pos_x, world_pos_y
+                    )
+
+                    draw_commands.append(
+                        DrawCmd(
+                            type=DrawCmdType.SPRITE,
+                            sprite=sprite,
+                            position=Pos(screen_x, screen_y, entity.pos.z),
+                            layer=entity.pos.z + 10,  # Entities above tiles
+                        ),
+                    )
             except KeyError:
                 # Skip entities without sprites
                 print(f"Warning: No sprite found for entity type '{sprite_id}'")
