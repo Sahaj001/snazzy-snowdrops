@@ -192,7 +192,7 @@ class RenderSystem:
                             type=DrawCmdType.SPRITE,
                             sprite=sprite,
                             position=Pos(screen_x, screen_y, entity.pos.z),
-                            layer=entity.pos.z + 10,  # Entities above tiles
+                            layer=entity.pos.z,
                         ),
                     )
             except KeyError:

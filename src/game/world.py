@@ -125,15 +125,21 @@ class World:
 
     def _check_if_click_on_entity(
         self,
-        x: int,
-        y: int,
+        tile_x: int,
+        tile_y: int,
         entities: list[Entity],
     ) -> Entity | None:
         """Check if a click event intersects with any entity."""
+        clickable_entities = []
         for entity in entities:
-            if entity.pos.x // self.tiles.tile_size == x and entity.pos.y // self.tiles.tile_size == y:
-                return entity
-        return None
+            entity_tile_x, entity_tile_y = entity.pos.tile_position(
+                self.tiles.tile_size,
+            )
+            if entity_tile_x == tile_x and entity_tile_y == tile_y:
+                clickable_entities.append(entity)
+
+        clickable_entities.sort(key=lambda e: e.pos.z, reverse=True)
+        return clickable_entities[0] if clickable_entities else None
 
     def _handle_click_event(self, payload: dict, event_bus: EventBus) -> None:
         """Handle click events to interact with entities."""

@@ -29,6 +29,12 @@ WORLD_WIDTH_PIXELS = 2000
 WORLD_HEIGHT_PIXELS = 2000
 TILE_SIZE_PIXELS = 50  # pixels
 
+PLAYER_Z = 1  # Player's z-index for rendering
+FRUIT_Z = 2
+TREE_Z = 3  # Tree's z-index for rendering
+WALL_Z = 1  # Wall's z-index for rendering
+GRASS_Z = 0  # Grass z-index for rendering
+
 
 def generate_tile_map() -> TileMap:
     """Generate a simple tile map for the world."""
@@ -53,9 +59,9 @@ def generate_tile_map() -> TileMap:
                     and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END
                 )
             ):
-                tile = Tile("wall", passable=False, z=1)
+                tile = Tile("wall", passable=False, z=WALL_Z)
             else:
-                tile = Tile("grass", passable=True, z=0)
+                tile = Tile("grass", passable=True, z=GRASS_Z)
 
             game_tile_map.set(x, y, tile)
 
@@ -71,7 +77,7 @@ def generate_world(game_tile_map: TileMap) -> World:
     # Example player
     player = Player(
         entity_id="player1",
-        pos=Pos(10 * TILE_SIZE_PIXELS, 10 * TILE_SIZE_PIXELS, 0),
+        pos=Pos(10 * TILE_SIZE_PIXELS, 10 * TILE_SIZE_PIXELS, PLAYER_Z),
         behaviour=None,
     )
     game_world.add_player(player)
@@ -84,7 +90,7 @@ def generate_world(game_tile_map: TileMap) -> World:
             (4 * TILE_SIZE_PIXELS, 3 * TILE_SIZE_PIXELS),
         ],
     ):
-        fruit = Fruit(f"fruit_{idx}", pos=Pos(*fruit_pos, 0), behaviour=None)
+        fruit = Fruit(f"fruit_{idx}", pos=Pos(*fruit_pos, FRUIT_Z), behaviour=None)
         game_world.add_entity(fruit)
 
     for idx, tree_pos in enumerate(
@@ -94,7 +100,11 @@ def generate_world(game_tile_map: TileMap) -> World:
             (5 * TILE_SIZE_PIXELS, 5 * TILE_SIZE_PIXELS),
         ],
     ):
-        tree = Tree(f"tree_{idx}", pos=Pos(*tree_pos, 0), behaviour=TreeBehaviour())
+        tree = Tree(
+            f"tree_{idx}",
+            pos=Pos(*tree_pos, TREE_Z),
+            behaviour=TreeBehaviour(),
+        )
         game_world.add_entity(tree)
 
     return game_world
