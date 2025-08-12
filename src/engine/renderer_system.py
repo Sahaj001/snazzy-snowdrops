@@ -85,18 +85,26 @@ class RenderSystem:
         """Generate a list of draw commands based on the current world state."""
         draw_commands = []
         draw_commands.extend(self._build_world_draw_commands(world, camera))
-        draw_commands.extend(self._build_ui_draw_commands(world, now))
+        draw_commands.extend(self._build_ui_draw_commands(world, now, camera))
         return draw_commands
 
-    def _build_ui_draw_commands(self, world: World, now: float) -> list[DrawCmd]:
+    def _build_ui_draw_commands(
+        self,
+        world: World,
+        now: float,
+        camera: Camera,
+    ) -> list[DrawCmd]:
         draw_commands = []
         for overlay_id, expiry_time in self.ui_overlays.items():
             if expiry_time > now and overlay_id == "player_info":
                 player = world.get_current_player()
-                player_pos = player.pos
+                player_pos_x, player_pos_y = camera.world_to_screen(
+                    player.pos.x,
+                    player.pos.y,
+                )
                 hud_position = Pos(
-                    player_pos.x,
-                    player_pos.y - world.tiles.tile_size / 2,
+                    player_pos_x,
+                    player_pos_y - 1,
                     0,
                 )
 
