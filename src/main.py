@@ -1,7 +1,7 @@
 # Import necessary JS bindings
-import js
 import random
 
+import js
 from js import document, window
 from pyodide.ffi import create_proxy
 from pyodide.http import pyfetch
@@ -47,6 +47,7 @@ def generate_tile_map() -> TileMap:
 
     # Set random seed for consistent world generation
     random.seed(42)
+    wall_in_screen_probability = 0.08
 
     for y in range(height):
         for x in range(width):
@@ -56,7 +57,7 @@ def generate_tile_map() -> TileMap:
             elif y == 0 or y == height - 1:
                 tile = Tile("vertical_wall", passable=False, z=WALL_Z)
             # Random internal walls (sparse distribution)
-            elif random.random() < 0.08:  # 8% chance of wall
+            elif random.random() < wall_in_screen_probability:
                 tile = Tile("horizontal_wall", passable=False, z=WALL_Z)
             else:
                 tile = Tile("grass", passable=True, z=GRASS_Z)
@@ -98,14 +99,8 @@ def generate_world(game_tile_map: TileMap) -> World:
     num_fruits = 50
     for idx in range(num_fruits):
         # Avoid placing near edges
-        x = (
-            random.randint(3, (WORLD_WIDTH_PIXELS // TILE_SIZE_PIXELS) - 3)
-            * TILE_SIZE_PIXELS
-        )
-        y = (
-            random.randint(3, (WORLD_HEIGHT_PIXELS // TILE_SIZE_PIXELS) - 3)
-            * TILE_SIZE_PIXELS
-        )
+        x = random.randint(3, (WORLD_WIDTH_PIXELS // TILE_SIZE_PIXELS) - 3) * TILE_SIZE_PIXELS
+        y = random.randint(3, (WORLD_HEIGHT_PIXELS // TILE_SIZE_PIXELS) - 3) * TILE_SIZE_PIXELS
 
         tile_x, tile_y = x // TILE_SIZE_PIXELS, y // TILE_SIZE_PIXELS
         if game_tile_map.get(tile_x, tile_y).passable:
@@ -115,14 +110,8 @@ def generate_world(game_tile_map: TileMap) -> World:
     # Generate random trees
     num_trees = 30
     for idx in range(num_trees):
-        x = (
-            random.randint(5, (WORLD_WIDTH_PIXELS // TILE_SIZE_PIXELS) - 5)
-            * TILE_SIZE_PIXELS
-        )
-        y = (
-            random.randint(5, (WORLD_HEIGHT_PIXELS // TILE_SIZE_PIXELS) - 5)
-            * TILE_SIZE_PIXELS
-        )
+        x = random.randint(5, (WORLD_WIDTH_PIXELS // TILE_SIZE_PIXELS) - 5) * TILE_SIZE_PIXELS
+        y = random.randint(5, (WORLD_HEIGHT_PIXELS // TILE_SIZE_PIXELS) - 5) * TILE_SIZE_PIXELS
 
         tile_x, tile_y = x // TILE_SIZE_PIXELS, y // TILE_SIZE_PIXELS
         if game_tile_map.get(tile_x, tile_y).passable:
@@ -161,8 +150,8 @@ async def create_engine() -> GameEngine:
         y=2,
         screen_w=canvas.width,
         screen_h=canvas.height,
-        world_max_x=WORLD_HEIGHT_PIXELS,
-        world_max_y=WORLD_WIDTH_PIXELS,
+        world_max_y=WORLD_HEIGHT_PIXELS,
+        world_max_x=WORLD_WIDTH_PIXELS,
     )
     render_system = RenderSystem(
         sprites=sprite_registry,
@@ -214,7 +203,7 @@ def tick_frame(timestamp: float | None = None, *, engine) -> None:  # noqa: ANN0
 
     # Schedule next frame
     window.requestAnimationFrame(
-        create_proxy(lambda timestamp: tick_frame(timestamp, engine=engine))
+        create_proxy(lambda timestamp: tick_frame(timestamp, engine=engine)),
     )
 
 
@@ -222,7 +211,7 @@ async def start() -> None:
     """Initialize the game engine and start the game loop."""
     engine = await create_engine()
 
-    def handle_resize(event: js.Event) -> None:
+    def handle_resize(_event: js.Event) -> None:
         """Handle window resize events."""
         on_resize(engine)
 
