@@ -70,7 +70,10 @@ class World:
     def is_passable(self, x: int, y: int) -> bool:
         """Check if a location is passable in the tile map."""
         # First check if the tile itself is passable
-        if not self.tiles.is_passable(x, y):
+        if not self.tiles.is_passable(
+            x // self.tiles.tile_size,
+            y // self.tiles.tile_size,
+        ):
             return False
 
         # Then check if any entity at this position blocks movement
@@ -122,28 +125,34 @@ class World:
 
     def _check_if_click_on_entity(
         self,
-        x: int,
-        y: int,
+        tile_x: int,
+        tile_y: int,
         entities: list[Entity],
     ) -> Entity | None:
         """Check if a click event intersects with any entity."""
+        clickable_entities = []
         for entity in entities:
-            if entity.pos.x == x and entity.pos.y == y:
-                return entity
-        return None
+            entity_tile_x, entity_tile_y = entity.pos.tile_position(
+                self.tiles.tile_size,
+            )
+            if entity_tile_x == tile_x and entity_tile_y == tile_y:
+                clickable_entities.append(entity)
+
+        clickable_entities.sort(key=lambda e: e.pos.z, reverse=True)
+        return clickable_entities[0] if clickable_entities else None
 
     def _handle_click_event(self, payload: dict, event_bus: EventBus) -> None:
         """Handle click events to interact with entities."""
-        screen_x, screen_y = payload["position"]
-        # Convert screen coordinates to tile coordinates
+        world_x, world_y = payload["position"]
 
+        # Convert world coordinates to tile coordinates
         tile_x, tile_y = (
-            screen_x // self.tiles.tile_size,
-            screen_y // self.tiles.tile_size,
+            world_x // self.tiles.tile_size,
+            world_y // self.tiles.tile_size,
         )
 
         player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
-        entities_in_scope = self.find_near(player_pos, 1)
+        entities_in_scope = self.find_near(player_pos, self.tiles.tile_size)
         clicked_entity = self._check_if_click_on_entity(
             tile_x,
             tile_y,
@@ -165,13 +174,13 @@ class World:
             return
 
         if key == "ArrowUp":
-            player.move(0, -1, self)
+            player.move(0, -1 * self.tiles.tile_size, self)
         elif key == "ArrowDown":
-            player.move(0, 1, self)
+            player.move(0, 1 * self.tiles.tile_size, self)
         elif key == "ArrowLeft":
-            player.move(-1, 0, self)
+            player.move(-1 * self.tiles.tile_size, 0, self)
         elif key == "ArrowRight":
-            player.move(1, 0, self)
+            player.move(1 * self.tiles.tile_size, 0, self)
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""

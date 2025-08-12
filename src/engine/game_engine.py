@@ -40,16 +40,20 @@ class GameEngine:
         for event in input_events:
             print(f"Processing input event: {event}")
             if event.input_type == InputType.CLICK:
+                screen_x, screen_y = event.position
+                world_x, world_y = self.renderer.camera.screen_to_world(
+                    screen_x,
+                    screen_y,
+                )
                 self.event_bus.post(
                     GameEvent(
                         event_type=EventType.INPUT,
-                        payload={"type": "click", "position": event.position},
+                        payload={"type": "click", "position": (world_x, world_y)},
                     ),
                 )
 
                 self.sound_sys.play_sfx("btn-click")
             elif event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
-                print(f"Key event: {event.input_type} {event.key}")
                 event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.INPUT
                 self.event_bus.post(
                     GameEvent(

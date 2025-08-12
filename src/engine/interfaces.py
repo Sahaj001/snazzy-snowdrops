@@ -46,3 +46,10 @@ class Living(Protocol):
 
     def take_damage(self, n: int) -> None:
         """Apply damage to the entity, reducing its HP."""
+
+
+class Drawable(Protocol):
+    """Marks an entity as drawable on the screen."""
+
+    def draw(self, *args: int, **kwargs: int) -> None:
+        """Draw this entity on the screen using the current view context."""

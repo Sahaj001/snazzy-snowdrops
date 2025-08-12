@@ -34,7 +34,12 @@ class SpriteRegistry:
             image_path="assets/sprites/player.png",
             size=(sprite_size, sprite_size),
         )
-        self._sprites["wall"] = Sprite(
+        self._sprites["horizontal_wall"] = Sprite(
+            type=SpriteType.TILE,
+            image_path="assets/sprites/wall.png",
+            size=(sprite_size, sprite_size),
+        )
+        self._sprites["vertical_wall"] = Sprite(
             type=SpriteType.TILE,
             image_path="assets/sprites/wall.png",
             size=(sprite_size, sprite_size),
@@ -52,11 +57,6 @@ class SpriteRegistry:
         self._sprites["tree"] = Sprite(
             type=SpriteType.TILE,
             image_path="assets/sprites/tree.png",
-            size=(sprite_size, sprite_size),
-        )
-        self._sprites["player_info"] = Sprite(
-            type=SpriteType.SPRITE,
-            image_path="assets/sprites/fruit.png",
             size=(sprite_size, sprite_size),
         )
 
@@ -85,19 +85,26 @@ class RenderSystem:
         """Generate a list of draw commands based on the current world state."""
         draw_commands = []
         draw_commands.extend(self._build_world_draw_commands(world, camera))
-        draw_commands.extend(self._build_ui_draw_commands(world, now))
+        draw_commands.extend(self._build_ui_draw_commands(world, now, camera))
         return draw_commands
 
-    def _build_ui_draw_commands(self, world: World, now: float) -> list[DrawCmd]:
+    def _build_ui_draw_commands(
+        self,
+        world: World,
+        now: float,
+        camera: Camera,
+    ) -> list[DrawCmd]:
         draw_commands = []
-        tile_size = world.tiles.tile_size
         for overlay_id, expiry_time in self.ui_overlays.items():
             if expiry_time > now and overlay_id == "player_info":
                 player = world.get_current_player()
-                player_pos = player.pos
+                player_pos_x, player_pos_y = camera.world_to_screen(
+                    player.pos.x,
+                    player.pos.y,
+                )
                 hud_position = Pos(
-                    (player_pos.x - 1) * tile_size,
-                    player_pos.y * tile_size,
+                    player_pos_x,
+                    player_pos_y - 1,
                     0,
                 )
 
@@ -111,8 +118,8 @@ class RenderSystem:
 
         if self.active_dialog:
             dialog_position = Pos(
-                world.tiles.width * tile_size / 2,
-                world.tiles.height * tile_size / 2,
+                world.tiles.width * world.tiles.tile_size / 2,
+                world.tiles.height * world.tiles.tile_size / 2,
                 0,
             )
             draw_commands.append(
@@ -128,26 +135,39 @@ class RenderSystem:
     def _build_world_draw_commands(
         self,
         world: World,
-        _camera: Camera,
+        camera: Camera,
     ) -> list[DrawCmd]:
         """Generate a list of draw commands based on the current world state."""
         draw_commands = []
 
         # 1. Draw tiles from the tile map
         tile_map = world.tiles
-        tile_size = tile_map.tile_size
+        tile_size_pixels = tile_map.tile_size  # pixels
 
-        # Draw all tiles (no camera culling for now)
-        for y in range(tile_map.height):
-            for x in range(tile_map.width):
+        start_tile_x = max(camera.x // tile_size_pixels, 0)
+        start_tile_y = max(camera.y // tile_size_pixels, 0)
+
+        end_tile_x = min(
+            (camera.x + camera.screen_w) // tile_size_pixels,
+            tile_map.width,
+        )
+        end_tile_y = min(
+            (camera.y + camera.screen_h) // tile_size_pixels,
+            tile_map.height,
+        )
+
+        for y in range(start_tile_y, end_tile_y + 1):
+            for x in range(start_tile_x, end_tile_x + 1):
                 tile = tile_map.get(x, y)
                 if tile:
-                    # Get the sprite for this tile type
                     sprite = self.sprites.get(tile.sprite_id)
 
-                    # Calculate screen position directly from tile coordinates
-                    screen_x = x * tile_size
-                    screen_y = y * tile_size
+                    world_x = x * tile_size_pixels
+                    world_y = y * tile_size_pixels
+
+                    screen_x, screen_y = camera.world_to_screen(world_x, world_y)
+
+                    rotation = 90 if tile.sprite_id == "horizontal_wall" else 0
 
                     # Create draw command
                     draw_commands.append(
@@ -156,6 +176,7 @@ class RenderSystem:
                             sprite=sprite,
                             position=Pos(screen_x, screen_y, tile.z),
                             layer=tile.z,
+                            rotation=rotation,
                         ),
                     )
 
@@ -167,18 +188,24 @@ class RenderSystem:
             try:
                 sprite = self.sprites.get(sprite_id)
 
-                # Calculate screen position directly from entity position
-                screen_x = entity.pos.x * tile_size
-                screen_y = entity.pos.y * tile_size
+                world_pos_x, world_pos_y = entity.pos.x, entity.pos.y
+                if (
+                    camera.x <= world_pos_x < camera.x + camera.screen_w
+                    and camera.y <= world_pos_y < camera.y + camera.screen_h
+                ):
+                    screen_x, screen_y = camera.world_to_screen(
+                        world_pos_x,
+                        world_pos_y,
+                    )
 
-                draw_commands.append(
-                    DrawCmd(
-                        type=DrawCmdType.SPRITE,
-                        sprite=sprite,
-                        position=Pos(screen_x, screen_y, entity.pos.z),
-                        layer=entity.pos.z + 10,  # Entities above tiles
-                    ),
-                )
+                    draw_commands.append(
+                        DrawCmd(
+                            type=DrawCmdType.SPRITE,
+                            sprite=sprite,
+                            position=Pos(screen_x, screen_y, entity.pos.z),
+                            layer=entity.pos.z,
+                        ),
+                    )
             except KeyError:
                 # Skip entities without sprites
                 print(f"Warning: No sprite found for entity type '{sprite_id}'")

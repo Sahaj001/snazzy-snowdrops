@@ -14,8 +14,6 @@ if TYPE_CHECKING:
 
     from models.draw_cmd import DrawCmd
     from models.position import Pos
-    from models.sprite import Sprite
-    from ui.dialog import DialogBox
 
 ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape"]
 
@@ -59,42 +57,19 @@ class ViewBridge:
         # Process each draw command
         for cmd in cmds:
             if cmd.type == DrawCmdType.SPRITE:
-                self.draw_sprite(cmd.sprite, cmd.position)
+                cmd.sprite.draw(
+                    self.canvas,
+                    self._load_image(cmd.sprite.image_path),
+                    cmd.position,
+                    cmd.rotation,
+                )
             elif cmd.type == DrawCmdType.TEXT:
                 self.draw_text(
                     cmd.text,
                     cmd.position,
                 )
             elif cmd.type == DrawCmdType.DIALOG:
-                self.draw_dialog(cmd.dialog)
-
-    def draw_dialog(self, dialog: DialogBox) -> None:
-        """Draw a dialog box on the canvas."""
-        # Background
-        width, height = 300, 150
-        x, y = (self.canvas.width - width) // 2, (self.canvas.height - height) // 2
-
-        # Background
-        self.ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
-        self.ctx.fillRect(x, y, width, height)
-
-        # Text
-        self.ctx.fillStyle = "white"
-        self.ctx.font = "18px Arial"
-        self.ctx.fillText(dialog.text, x + 20, y + 40)
-
-        # Options
-        for i, option in enumerate(dialog.options):
-            color = "yellow" if i == dialog.selected_index else "white"
-            self.ctx.fillStyle = color
-            self.ctx.fillText(option, x + 20 + i * 100, y + 100)
-
-    def draw_sprite(self, sprite: Sprite, position: Pos) -> None:
-        """Draw a single sprite at a given position."""
-        img = self._load_image(sprite.image_path)
-        x, y = position.x, position.y
-        w, h = sprite.size
-        self.ctx.drawImage(img, x, y, w, h)
+                cmd.dialog.draw_dialog(self.canvas)
 
     def draw_text(
         self,
