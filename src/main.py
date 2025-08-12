@@ -25,14 +25,11 @@ canvas.height = window.innerHeight
 input_system = InputSystem()
 view_bridge = ViewBridge(canvas, input_system)
 
-# 2. Load sprite assets
-# view_bridge.load_assets("assets/sprites.json")
-
-# 3. Create sprite registry
+# 2. Create sprite registry
 sprite_registry = SpriteRegistry()
 sprite_registry.load_from_json("assets/sprites.json")
 
-# 4. Create systems
+# 3. Create systems
 camera = Camera(x=0, y=0, screen_w=canvas.width, screen_h=canvas.height)
 render_system = RenderSystem(
     sprites=sprite_registry,
@@ -42,7 +39,7 @@ render_system = RenderSystem(
 event_bus = EventBus()
 
 
-# 5. Create world
+# 4. Create world
 # Provide an initial tiles argument (e.g., an empty list or your map data)
 # Wall placement constants
 VERTICAL_WALL_X = 5
@@ -108,7 +105,7 @@ world = generate_world(generate_tile_map())
 
 
 # ==== GAME LOOP ====
-def tick_frame(timestamp: float | None = None, *, engine) -> None:
+def tick_frame(timestamp: float | None = None, *, engine) -> None:  # noqa: ANN001
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
@@ -125,8 +122,8 @@ def tick_frame(timestamp: float | None = None, *, engine) -> None:
     window.requestAnimationFrame(create_proxy(lambda timestamp: tick_frame(timestamp, engine=engine)))
 
 
-async def start():
-    SoundSystem(
+async def start() -> None:
+    sound_sys = SoundSystem(
         bgm_map=await load_json("assets/audio/bgm.json"),
         sfx_map=await load_json("assets/audio/sfx.json"),
     )
@@ -135,6 +132,7 @@ async def start():
         renderer=render_system,
         input_sys=input_system,
         event_bus=event_bus,
+        sound_sys=sound_sys,
     )
     tick_frame(engine=engine)
 

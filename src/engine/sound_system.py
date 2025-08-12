@@ -4,20 +4,14 @@ from js import Audio
 
 
 class SoundSystem:
-    _initialized = False
+    def __init__(self, bgm_map: dict, sfx_map: dict) -> None:
+        self._bgm_map = bgm_map
+        self._sfx_map = sfx_map
 
-    def __init__(self, bgm_map: dict = {}, sfx_map: dict = {}) -> None:
-        if not self._initialized:
-            self._bgm_map = bgm_map
+        self._bgm = Audio.new()
+        self._bgm.loop = True
 
-            self._sfx_map = sfx_map
-
-            self._bgm = Audio.new()
-            self._bgm.loop = True
-
-            self._sfx = Audio.new()
-
-            self._initialized = True
+        self._sfx = Audio.new()
 
     def play_bgm(self, audio: str) -> None:
         """Play background music.
@@ -42,11 +36,3 @@ class SoundSystem:
             self._sfx.volume = audio_file["volume"]
             self._sfx.src = audio_file["path"]
             self._sfx.play()
-
-    def __new__(cls, bgm_map: dict = {}, sfx_map: dict = {}) -> SoundSystem:  # noqa: PYI034
-        """Singleton pattern: class can only have one instance,
-        so multiple audios don't start playing out of nowhere.
-        """  # noqa: D205
-        if not hasattr(cls, "instance"):
-            cls.instance = super().__new__(cls)
-        return cls.instance

@@ -12,6 +12,6 @@ __all__ = [
     "GameEngine",
     "InputSystem",
     "RenderSystem",
-    "SpriteRegistry",
     "SoundSystem",
+    "SpriteRegistry",
 ]
