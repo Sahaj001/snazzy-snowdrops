@@ -217,7 +217,7 @@ async def start() -> None:
 
     window.addEventListener("resize", create_proxy(handle_resize))
 
-    tick_frame(engine=engine)
+    tick_frame(timestamp=0, engine=engine)
 
 
 async def load_json(path: str) -> dict:

@@ -69,7 +69,9 @@ class ViewBridge:
                     cmd.position,
                 )
             elif cmd.type == DrawCmdType.DIALOG:
-                cmd.dialog.draw_dialog(self.canvas)
+                cmd.dialog.draw(self.canvas)
+            elif cmd.type == DrawCmdType.STATUS_BAR:
+                cmd.status_bar.draw(self.canvas)
 
     def draw_text(
         self,

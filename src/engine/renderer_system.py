@@ -6,7 +6,7 @@ from engine.event_bus import EventType, GameEvent
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
 from models.sprite import Sprite, SpriteType
-from ui.dialog import DialogBox
+from ui import DialogBox, StatusBar
 
 if TYPE_CHECKING:
     from engine.camera import Camera
@@ -129,6 +129,27 @@ class RenderSystem:
                     position=dialog_position,
                 ),
             )
+
+        # Add status bar overlay
+        status_bar_position = Pos(
+            camera.screen_w - 150,
+            camera.screen_h - 50,
+            0,
+        )
+        draw_commands.append(
+            DrawCmd(
+                type=DrawCmdType.STATUS_BAR,
+                position=status_bar_position,
+                status_bar=StatusBar(
+                    hp=world.get_current_player().hp,
+                    max_hp=100,
+                    intelligence=10,
+                    max_intelligence=100,
+                    fatigue=10,
+                    ticks=now,
+                ),
+            ),
+        )
 
         return draw_commands
 

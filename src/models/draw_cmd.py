@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from ui.dialog import DialogBox
+from ui import DialogBox, StatusBar
 
 from .position import Pos
 from .sprite import Sprite
@@ -13,6 +13,7 @@ class DrawCmdType(Enum):
     SPRITE = "sprite"
     TEXT = "text"
     DIALOG = "dialog"
+    STATUS_BAR = "status_bar"
 
 
 @dataclass
@@ -26,6 +27,7 @@ class DrawCmd:
     type: DrawCmdType = DrawCmdType.SPRITE
     sprite: Sprite | None = None
     dialog: DialogBox | None = None
+    status_bar: StatusBar | None = None
     text: str | None = None
     layer: int = 0  # Rendering order (higher = drawn later, on top)
     rotation: float = 0.0  # Rotation in degrees
