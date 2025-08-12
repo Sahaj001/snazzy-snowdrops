@@ -29,13 +29,11 @@ class Player(Entity, Living, Interactable):
 
     def move(self, dx: int, dy: int, world: World) -> None:
         """Move the player by dx, dy if the target tile is passable."""
-        print(f"Player {self.id} moving by ({dx}, {dy})")
         new_x = self.pos.x + dx
         new_y = self.pos.y + dy
         if world.is_passable(new_x, new_y):
             self.pos.x = new_x
             self.pos.y = new_y
-            print(f"Player {self.id} moved by ({dx}, {dy})")
 
     def update(
         self,

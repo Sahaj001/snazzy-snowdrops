@@ -59,7 +59,7 @@ class ViewBridge:
         # Process each draw command
         for cmd in cmds:
             if cmd.type == DrawCmdType.SPRITE:
-                self.draw_sprite(cmd.sprite, cmd.position)
+                self.draw_sprite(cmd.sprite, cmd.position, cmd.rotation)
             elif cmd.type == DrawCmdType.TEXT:
                 self.draw_text(
                     cmd.text,
@@ -89,12 +89,16 @@ class ViewBridge:
             self.ctx.fillStyle = color
             self.ctx.fillText(option, x + 20 + i * 100, y + 100)
 
-    def draw_sprite(self, sprite: Sprite, position: Pos) -> None:
+    def draw_sprite(self, sprite: Sprite, position: Pos, rotation: float) -> None:
         """Draw a single sprite at a given position."""
         img = self._load_image(sprite.image_path)
         x, y = position.x, position.y
         w, h = sprite.size
-        self.ctx.drawImage(img, x, y, w, h)
+        self.ctx.save()
+        self.ctx.translate(x + w / 2, y + h / 2)
+        self.ctx.rotate(rotation * (js.Math.PI / 180))
+        self.ctx.drawImage(img, -w / 2, -h / 2, w, h)
+        self.ctx.restore()
 
     def draw_text(
         self,

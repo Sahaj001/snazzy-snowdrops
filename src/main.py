@@ -1,5 +1,7 @@
 # Import necessary JS bindings
 import js
+import random
+
 from js import document, window
 from pyodide.ffi import create_proxy
 from pyodide.http import pyfetch
@@ -37,76 +39,101 @@ GRASS_Z = 0  # Grass z-index for rendering
 
 
 def generate_tile_map() -> TileMap:
-    """Generate a simple tile map for the world."""
-    tile_size = TILE_SIZE_PIXELS  # Pixels per tile
+    """Generate a larger tile map with perimeter walls and random internal walls."""
+    tile_size = TILE_SIZE_PIXELS
     width, height = WORLD_WIDTH_PIXELS // tile_size, WORLD_HEIGHT_PIXELS // tile_size
 
     game_tile_map = TileMap(width, height, tile_size)
 
+    # Set random seed for consistent world generation
+    random.seed(42)
+
     for y in range(height):
         for x in range(width):
-            if (
-                x == 0
-                or x == width - 1
-                or y == 0
-                or y == height - 1
-                or (
-                    x == VERTICAL_WALL_X
-                    and VERTICAL_WALL_Y_START <= y <= VERTICAL_WALL_Y_END
-                )
-                or (
-                    y == HORIZONTAL_WALL_Y
-                    and HORIZONTAL_WALL_X_START <= x <= HORIZONTAL_WALL_X_END
-                )
-            ):
-                tile = Tile("wall", passable=False, z=WALL_Z)
+            # Perimeter walls
+            if x == 0 or x == width - 1:
+                tile = Tile("horizontal_wall", passable=False, z=WALL_Z)
+            elif y == 0 or y == height - 1:
+                tile = Tile("vertical_wall", passable=False, z=WALL_Z)
+            # Random internal walls (sparse distribution)
+            elif random.random() < 0.08:  # 8% chance of wall
+                tile = Tile("horizontal_wall", passable=False, z=WALL_Z)
             else:
                 tile = Tile("grass", passable=True, z=GRASS_Z)
 
             game_tile_map.set(x, y, tile)
 
-    print("Tile map generated with dimensions:", width, "x", height)
-    print("Tile map data:", game_tile_map.tiles)
+    # Create some guaranteed pathways to prevent isolated areas
+    # Horizontal pathways
+    for pathway_y in range(10, height - 10, 15):
+        for x in range(1, width - 1):
+            game_tile_map.set(x, pathway_y, Tile("grass", passable=True, z=GRASS_Z))
 
+    # Vertical pathways
+    for pathway_x in range(10, width - 10, 15):
+        for y in range(1, height - 1):
+            game_tile_map.set(pathway_x, y, Tile("grass", passable=True, z=GRASS_Z))
+
+    print(f"Large tile map generated with dimensions: {width} x {height}")
     return game_tile_map
 
 
 def generate_world(game_tile_map: TileMap) -> World:
-    """Create a new world with the given tile map."""
+    """Create a new world with the given tile map and random entities."""
     game_world = World(tiles=game_tile_map)
-    # Example player
+
+    # Player in center of world
+    center_x = WORLD_WIDTH_PIXELS // 2
+    center_y = WORLD_HEIGHT_PIXELS // 2
     player = Player(
         entity_id="player1",
-        pos=Pos(10 * TILE_SIZE_PIXELS, 10 * TILE_SIZE_PIXELS, PLAYER_Z),
+        pos=Pos(center_x, center_y, PLAYER_Z),
         behaviour=None,
     )
     game_world.add_player(player)
 
-    # Entities like tree and fruit
-    for idx, fruit_pos in enumerate(
-        [
-            (2 * TILE_SIZE_PIXELS, 2 * TILE_SIZE_PIXELS),
-            (3 * TILE_SIZE_PIXELS, 10 * TILE_SIZE_PIXELS),
-            (4 * TILE_SIZE_PIXELS, 3 * TILE_SIZE_PIXELS),
-        ],
-    ):
-        fruit = Fruit(f"fruit_{idx}", pos=Pos(*fruit_pos, FRUIT_Z), behaviour=None)
-        game_world.add_entity(fruit)
+    random.seed(123)
 
-    for idx, tree_pos in enumerate(
-        [
-            (3 * TILE_SIZE_PIXELS, 3 * TILE_SIZE_PIXELS),
-            (4 * TILE_SIZE_PIXELS, 4 * TILE_SIZE_PIXELS),
-            (5 * TILE_SIZE_PIXELS, 5 * TILE_SIZE_PIXELS),
-        ],
-    ):
-        tree = Tree(
-            f"tree_{idx}",
-            pos=Pos(*tree_pos, TREE_Z),
-            behaviour=TreeBehaviour(),
+    # Generate random fruits across the world
+    num_fruits = 50
+    for idx in range(num_fruits):
+        # Avoid placing near edges
+        x = (
+            random.randint(3, (WORLD_WIDTH_PIXELS // TILE_SIZE_PIXELS) - 3)
+            * TILE_SIZE_PIXELS
         )
-        game_world.add_entity(tree)
+        y = (
+            random.randint(3, (WORLD_HEIGHT_PIXELS // TILE_SIZE_PIXELS) - 3)
+            * TILE_SIZE_PIXELS
+        )
 
+        tile_x, tile_y = x // TILE_SIZE_PIXELS, y // TILE_SIZE_PIXELS
+        if game_tile_map.get(tile_x, tile_y).passable:
+            fruit = Fruit(f"fruit_{idx}", pos=Pos(x, y, FRUIT_Z), behaviour=None)
+            game_world.add_entity(fruit)
+
+    # Generate random trees
+    num_trees = 30
+    for idx in range(num_trees):
+        x = (
+            random.randint(5, (WORLD_WIDTH_PIXELS // TILE_SIZE_PIXELS) - 5)
+            * TILE_SIZE_PIXELS
+        )
+        y = (
+            random.randint(5, (WORLD_HEIGHT_PIXELS // TILE_SIZE_PIXELS) - 5)
+            * TILE_SIZE_PIXELS
+        )
+
+        tile_x, tile_y = x // TILE_SIZE_PIXELS, y // TILE_SIZE_PIXELS
+        if game_tile_map.get(tile_x, tile_y).passable:
+            tree = Tree(
+                f"tree_{idx}",
+                pos=Pos(x, y, TREE_Z),
+                behaviour=TreeBehaviour(),
+            )
+            game_world.add_entity(tree)
+
+    print(f"World generated with {num_fruits} fruits and {num_trees} trees")
     return game_world
 
 

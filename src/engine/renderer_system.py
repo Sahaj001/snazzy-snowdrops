@@ -34,7 +34,12 @@ class SpriteRegistry:
             image_path="assets/sprites/player.png",
             size=(sprite_size, sprite_size),
         )
-        self._sprites["wall"] = Sprite(
+        self._sprites["horizontal_wall"] = Sprite(
+            type=SpriteType.TILE,
+            image_path="assets/sprites/wall.png",
+            size=(sprite_size, sprite_size),
+        )
+        self._sprites["vertical_wall"] = Sprite(
             type=SpriteType.TILE,
             image_path="assets/sprites/wall.png",
             size=(sprite_size, sprite_size),
@@ -52,11 +57,6 @@ class SpriteRegistry:
         self._sprites["tree"] = Sprite(
             type=SpriteType.TILE,
             image_path="assets/sprites/tree.png",
-            size=(sprite_size, sprite_size),
-        )
-        self._sprites["player_info"] = Sprite(
-            type=SpriteType.SPRITE,
-            image_path="assets/sprites/fruit.png",
             size=(sprite_size, sprite_size),
         )
 
@@ -159,6 +159,8 @@ class RenderSystem:
 
                     screen_x, screen_y = camera.world_to_screen(world_x, world_y)
 
+                    rotation = 90 if tile.sprite_id == "horizontal_wall" else 0
+
                     # Create draw command
                     draw_commands.append(
                         DrawCmd(
@@ -166,6 +168,7 @@ class RenderSystem:
                             sprite=sprite,
                             position=Pos(screen_x, screen_y, tile.z),
                             layer=tile.z,
+                            rotation=rotation,
                         ),
                     )
 
