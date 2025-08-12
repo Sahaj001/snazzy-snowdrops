@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
     from models.draw_cmd import DrawCmd
     from models.position import Pos
-    from models.sprite import Sprite
 
 ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape"]
 
@@ -58,7 +57,12 @@ class ViewBridge:
         # Process each draw command
         for cmd in cmds:
             if cmd.type == DrawCmdType.SPRITE:
-                self.draw_sprite(cmd.sprite, cmd.position, cmd.rotation)
+                cmd.sprite.draw(
+                    self.canvas,
+                    self._load_image(cmd.sprite.image_path),
+                    cmd.position,
+                    cmd.rotation,
+                )
             elif cmd.type == DrawCmdType.TEXT:
                 self.draw_text(
                     cmd.text,
@@ -66,17 +70,6 @@ class ViewBridge:
                 )
             elif cmd.type == DrawCmdType.DIALOG:
                 cmd.dialog.draw_dialog(self.canvas)
-
-    def draw_sprite(self, sprite: Sprite, position: Pos, rotation: float) -> None:
-        """Draw a single sprite at a given position."""
-        img = self._load_image(sprite.image_path)
-        x, y = position.x, position.y
-        w, h = sprite.size
-        self.ctx.save()
-        self.ctx.translate(x + w / 2, y + h / 2)
-        self.ctx.rotate(rotation * (js.Math.PI / 180))
-        self.ctx.drawImage(img, -w / 2, -h / 2, w, h)
-        self.ctx.restore()
 
     def draw_text(
         self,

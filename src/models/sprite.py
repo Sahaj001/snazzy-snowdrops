@@ -1,6 +1,11 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from js import HTMLCanvasElement, Image, Math
+
+from engine.interfaces import Drawable
+from models.position import Pos
+
 
 class SpriteType(Enum):
     """Enumeration of different sprite rendering types."""
@@ -16,7 +21,7 @@ class SpriteType(Enum):
 
 
 @dataclass
-class Sprite:
+class Sprite(Drawable):
     """Represents a sprite resource.
 
     Stores metadata needed for rendering and animation.
@@ -34,3 +39,20 @@ class Sprite:
     def is_animated(self) -> bool:
         """Return True if sprite has more than one frame."""
         return self.frame_count > 1
+
+    def draw(
+        self,
+        canvas: HTMLCanvasElement,
+        img: Image,
+        position: Pos,
+        rotation: float = 0,
+    ) -> None:
+        """Draw a single sprite at a given position."""
+        x, y = position.x, position.y
+        w, h = self.size
+        ctx = canvas.getContext("2d")
+        ctx.save()
+        ctx.translate(x + w / 2, y + h / 2)
+        ctx.rotate(rotation * (Math.PI / 180))
+        ctx.drawImage(img, -w / 2, -h / 2, w, h)
+        ctx.restore()

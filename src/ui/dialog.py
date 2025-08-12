@@ -3,9 +3,11 @@ from dataclasses import dataclass
 
 from js import HTMLCanvasElement
 
+from engine.interfaces import Drawable
+
 
 @dataclass
-class DialogBox:
+class DialogBox(Drawable):
     """Represents a dialog box with text and options."""
 
     text: str
