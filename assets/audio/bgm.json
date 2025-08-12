@@ -1,0 +1,4 @@
+{
+    "normal": { "path": "assets/audio/bgm/normal.mp3", "volume": 0.2 },
+    "boss": { "path": "assets/audio/bgm/boss.mp3", "volume": 0.2 }
+}
