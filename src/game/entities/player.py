@@ -20,12 +20,23 @@ class Player(Entity, Living, Interactable):
         entity_id: str,
         pos: Pos,
         behaviour: Behaviour,
+        hp: int = 100,
+        max_hp: int = 100,
+        intelligence: int = 0,
+        max_intelligence: int = 100,
+        fatigue: int = 0,
+        max_fatigue: int = 100,
         speed: float = 1.0,
     ) -> None:
         super().__init__(entity_id, pos, behaviour)
         self.inventory = Inventory()
         self.speed = speed
-        self.hp = 100
+        self.hp = hp
+        self.max_hp = max_hp
+        self.intelligence = intelligence
+        self.max_intelligence = max_intelligence
+        self.fatigue = fatigue
+        self.max_fatigue = max_fatigue
 
     def move(self, dx: int, dy: int, world: World) -> None:
         """Move the player by dx, dy if the target tile is passable."""
@@ -73,3 +84,14 @@ class Player(Entity, Living, Interactable):
             "inventory": self.inventory.slots,
         }
         return str(hud_info)
+
+    def get_status_info(self) -> dict[str, int]:
+        """Get player status information."""
+        return {
+            "hp": self.hp,
+            "max_hp": self.max_hp,
+            "intelligence": self.intelligence,
+            "max_intelligence": self.max_intelligence,
+            "fatigue": self.fatigue,
+            "max_fatigue": self.max_fatigue,
+        }

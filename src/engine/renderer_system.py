@@ -130,22 +130,12 @@ class RenderSystem:
                 ),
             )
 
-        # Add status bar overlay
-        status_bar_position = Pos(
-            camera.screen_w - 150,
-            camera.screen_h - 50,
-            0,
-        )
         draw_commands.append(
             DrawCmd(
                 type=DrawCmdType.STATUS_BAR,
-                position=status_bar_position,
+                position=None,  # Position is handled by the StatusBar class
                 status_bar=StatusBar(
-                    hp=world.get_current_player().hp,
-                    max_hp=100,
-                    intelligence=10,
-                    max_intelligence=100,
-                    fatigue=10,
+                    **world.get_current_player().get_status_info(),
                     ticks=now,
                 ),
             ),

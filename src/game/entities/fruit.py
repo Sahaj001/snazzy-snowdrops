@@ -18,8 +18,10 @@ class Fruit(Entity, Interactable):
         fruit_id: str,
         pos: Pos,
         behaviour: Behaviour,
+        max_hp: int = 5,
     ) -> None:
         super().__init__(fruit_id, pos, behaviour)
+        self.max_hp = max_hp
 
     def interact(self, actor: Entity, event_bus: EventBus) -> None:
         """Allow an actor to interact with the fruit, e.g., pick it up."""
@@ -39,8 +41,8 @@ class Fruit(Entity, Interactable):
 
     def pick_up(self, actor: Entity, event_bus: EventBus) -> None:
         """Handle the logic for picking up the fruit."""
-        if hasattr(actor, "inventory"):
-            actor.inventory.add(self.id, 1)
+        if hasattr(actor, "hp") and actor.hp > 0:
+            actor.hp = min(actor.hp + self.max_hp, actor.max_hp)
             print(f"{actor.id} picked up {self.id}.")
 
             event_bus.post(

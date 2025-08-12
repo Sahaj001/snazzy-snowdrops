@@ -90,6 +90,8 @@ def generate_world(game_tile_map: TileMap) -> World:
         entity_id="player1",
         pos=Pos(center_x, center_y, PLAYER_Z),
         behaviour=None,
+        hp=40,
+        fatigue=20,
     )
     game_world.add_player(player)
 

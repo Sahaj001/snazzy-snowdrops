@@ -21,8 +21,9 @@ class StatusBar:
         left_padding = 15
         top_padding = 25
         font_size = 25
-        box_width = 200
-        box_height = 170
+        time_text = format_game_time(self.ticks)
+        box_width = left_padding + len(time_text) * font_size
+        box_height = 4 * (font_size + 15) + top_padding
 
         # Calculate position of status bar based on the corner
         x, y = self._get_position(ctx, corner, left_padding)
@@ -55,10 +56,12 @@ class StatusBar:
             f"{self.fatigue}/{self.max_fatigue}",
             font_size,
         )
-        self._draw_game_time(
+        self._draw_status(
             ctx,
             x + left_padding,
             y + top_padding + 3 * (font_size + 15),
+            "⏰",
+            format_game_time(self.ticks),
             font_size,
         )
 
@@ -125,21 +128,6 @@ class StatusBar:
         ctx.font = f"{font_size}px Arial"
         ctx.fillText(icon, x, y)  # Draw icon
         ctx.fillText(text, x + 50, y)  # Draw text next to the icon
-
-    def _draw_game_time(
-        self,
-        ctx: HTMLCanvasElement,
-        x: int,
-        y: int,
-        font_size: int,
-    ) -> None:
-        """Draw the game time below the status indicators."""
-        ctx.fillStyle = "white"
-        ctx.font = f"{font_size}px Arial"
-        game_time_text = format_game_time(
-            self.ticks,
-        )  # Format the time in a readable format
-        ctx.fillText(f"⏰ {game_time_text}", x, y)
 
 
 def format_game_time(ticks: float) -> str:
