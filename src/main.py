@@ -108,7 +108,7 @@ world = generate_world(generate_tile_map())
 
 
 # ==== GAME LOOP ====
-def tick_frame(_timestamp: float | None = None, *, engine) -> None:
+def tick_frame(timestamp: float | None = None, *, engine) -> None:
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
@@ -122,7 +122,7 @@ def tick_frame(_timestamp: float | None = None, *, engine) -> None:
     engine.event_bus.clear()
 
     # Schedule next frame
-    window.requestAnimationFrame(create_proxy(lambda _timestamp: tick_frame(_timestamp, engine=engine)))
+    window.requestAnimationFrame(create_proxy(lambda timestamp: tick_frame(timestamp, engine=engine)))
 
 
 async def start():
