@@ -15,7 +15,7 @@ class DialogBox(Drawable):
     selected_index: int = 0
     callback: Callable[[str], None] = None
 
-    def draw_dialog(
+    def draw(
         self,
         canvas: HTMLCanvasElement,
     ) -> None:

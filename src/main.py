@@ -90,6 +90,8 @@ def generate_world(game_tile_map: TileMap) -> World:
         entity_id="player1",
         pos=Pos(center_x, center_y, PLAYER_Z),
         behaviour=None,
+        hp=40,
+        fatigue=20,
     )
     game_world.add_player(player)
 
@@ -217,7 +219,7 @@ async def start() -> None:
 
     window.addEventListener("resize", create_proxy(handle_resize))
 
-    tick_frame(engine=engine)
+    tick_frame(timestamp=0, engine=engine)
 
 
 async def load_json(path: str) -> dict:

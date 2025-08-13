@@ -6,7 +6,7 @@ from engine.event_bus import EventType, GameEvent
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
 from models.sprite import Sprite, SpriteType
-from ui.dialog import DialogBox
+from ui import DialogBox, StatusBar
 
 if TYPE_CHECKING:
     from engine.camera import Camera
@@ -129,6 +129,17 @@ class RenderSystem:
                     position=dialog_position,
                 ),
             )
+
+        draw_commands.append(
+            DrawCmd(
+                type=DrawCmdType.STATUS_BAR,
+                position=None,  # Position is handled by the StatusBar class
+                status_bar=StatusBar(
+                    **world.get_current_player().get_status_info(),
+                    ticks=now,
+                ),
+            ),
+        )
 
         return draw_commands
 
