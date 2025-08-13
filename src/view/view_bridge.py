@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import js
-from js import Image, document
+from js import Image, document, window
 from pyodide.ffi import create_proxy
 
 from engine.input_system import InputEvent, InputSystem, InputType
@@ -49,12 +49,24 @@ class ViewBridge:
                 y = evt.clientY - rect.top
                 self.input_sys.push_event(InputEvent(InputType.CLICK, None, (x, y)))
             evt.preventDefault()
+        
+        def on_resize(evt: js.Event) -> None:
+            width = window.innerWidth
+            height = window.innerHeight
+            # You could either push into InputSystem OR just resize directly
+            if self.input_sys:
+                self.input_sys.push_event(InputEvent("resize", (width, height)))
+
 
         self.key_down_proxy = create_proxy(on_key_down)
         self.click_proxy = create_proxy(on_click)
+        self.resize_proxy = create_proxy(on_resize)
 
         document.addEventListener("keydown", self.key_down_proxy)
         document.addEventListener("click", self.click_proxy)
+        
+        # Bind to window for resize
+        window.addEventListener("resize", self.resize_proxy)
 
     def draw(self, cmds: list[DrawCmd]) -> None:
         """Send draw commands to the JS side for rendering."""

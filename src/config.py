@@ -1,0 +1,6 @@
+# Game constants
+
+# Window constant
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 600
+WIDNOW_RATIO = WINDOW_WIDTH / WINDOW_HEIGHT
