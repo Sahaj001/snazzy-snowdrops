@@ -17,7 +17,7 @@ class StatusBar:
 
     def draw(self, canvas: HTMLCanvasElement, corner: str = "top_left") -> None:
         """Draw the status bar on the given canvas."""
-        ctx = canvas.getContext("2d")
+        ctx = canvas.getContext("2d", alpha=True)
         left_padding = 15
         top_padding = 25
         font_size = 25
