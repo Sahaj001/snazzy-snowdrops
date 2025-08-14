@@ -13,8 +13,7 @@ if TYPE_CHECKING:
     from js import HTMLCanvasElement
 
     from models.draw_cmd import DrawCmd
-    from models.position import Pos
-    from models.tile import ObjectTile, TilesRegistry
+    from models.tile import TilesRegistry
 
 ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape"]
 
@@ -67,44 +66,43 @@ class ViewBridge:
                 cmd.sprite.draw(
                     self.canvas,
                     self._load_image(cmd.sprite.image_path),
-                    cmd.position,
-                    cmd.rotation,
+                    cmd,
                 )
             elif cmd.type == DrawCmdType.TILE:
-                self.tiles_registry.draw_tile(self.canvas, cmd.tile_gid, cmd.position)
+                self.tiles_registry.draw_tile(self.canvas, cmd)
             elif cmd.type == DrawCmdType.COLLISION:
-                self.draw_collision_box(cmd.position, cmd.collision_box)
+                self.draw_collision_box(cmd)
             elif cmd.type == DrawCmdType.TEXT:
                 self.draw_text(
-                    cmd.text,
-                    cmd.position,
+                    cmd,
                 )
             elif cmd.type == DrawCmdType.DIALOG:
                 cmd.dialog.draw(self.canvas)
             elif cmd.type == DrawCmdType.STATUS_BAR:
                 cmd.status_bar.draw(self.canvas)
 
-        self.tiles_registry.static_count += 1
-
-    def draw_collision_box(self, position: Pos, collision: ObjectTile) -> None:
+    def draw_collision_box(self, cmd: DrawCmd) -> None:
         """Draw a semi-transparent rectangle for collision boxes."""
+        position = cmd.position
+        collision = cmd.collision_box
         self.ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
         self.ctx.fillRect(
             position.x,
             position.y,
-            collision.width,
-            collision.height,
+            collision.width * cmd.scale,
+            collision.height * cmd.scale,
         )
 
     def draw_text(
         self,
-        text: str,
-        position: Pos,
+        cmd: DrawCmd,
         font: str = "16px Arial",
         color: str = "white",
         background_color: str = "rgba(0,0,0,0.7)",
     ) -> None:
         """Draws text with a background like a HUD or popup."""
+        text = cmd.text
+        position = cmd.position
         self.ctx.font = font
         self.ctx.fillStyle = background_color
 

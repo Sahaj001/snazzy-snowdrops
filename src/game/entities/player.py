@@ -38,7 +38,7 @@ class Player(Entity, Living, Interactable):
         self.max_intelligence = max_intelligence
         self.fatigue = fatigue
         self.max_fatigue = max_fatigue
-        self.step_size = 1
+        self.step_size = 20  # in pixel
 
     def move(self, direction: Direction, world: World) -> None:
         """Move the player by dx, dy if the target tile is passable."""

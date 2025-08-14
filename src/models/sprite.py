@@ -4,7 +4,7 @@ from enum import Enum
 from js import HTMLCanvasElement, Image, Math
 
 from engine.interfaces import Drawable
-from models.position import Pos
+from models.draw_cmd import DrawCmd
 
 
 class SpriteType(Enum):
@@ -44,15 +44,15 @@ class Sprite(Drawable):
         self,
         canvas: HTMLCanvasElement,
         img: Image,
-        position: Pos,
-        rotation: float = 0,
+        cmd: DrawCmd,
     ) -> None:
         """Draw a single sprite at a given position."""
-        x, y = position.x, position.y
+        x, y = cmd.position.x, cmd.position.y
         w, h = self.size
         ctx = canvas.getContext("2d", alpha=True)
         ctx.save()
+
         ctx.translate(x + w / 2, y + h / 2)
-        ctx.rotate(rotation * (Math.PI / 180))
-        ctx.drawImage(img, -w / 2, -h / 2, w, h)
+        ctx.rotate(cmd.rotation * (Math.PI / 180))
+        ctx.drawImage(img, -w / 2, -h / 2, w * cmd.scale, h * cmd.scale)
         ctx.restore()

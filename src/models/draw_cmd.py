@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import TYPE_CHECKING, Optional
 
-from models.tile import ObjectTile
-from ui import DialogBox, StatusBar
+if TYPE_CHECKING:
+    from models import ObjectTile
+    from ui import DialogBox, StatusBar
 
-from .position import Pos
-from .sprite import Sprite
+    from .position import Pos
+    from .sprite import Sprite
 
 
 class DrawCmdType(Enum):
@@ -26,13 +28,13 @@ class DrawCmd:
     This decouples rendering from game logic.
     """
 
-    position: Pos
+    position: "Pos"
     type: DrawCmdType = DrawCmdType.SPRITE
-    sprite: Sprite | None = None
-    dialog: DialogBox | None = None
-    status_bar: StatusBar | None = None
+    sprite: Optional["Sprite"] = None
+    dialog: Optional["DialogBox"] = None
+    status_bar: Optional["StatusBar"] = None
     tile_gid: int = 0  # For tile rendering
-    collision_box: ObjectTile | None = None
+    collision_box: Optional["ObjectTile"] = None
     text: str | None = None
     layer: int = 0  # Rendering order (higher = drawn later, on top)
     rotation: float = 0.0  # Rotation in degrees

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from js import HTMLCanvasElement, Image
 
-from models.position import Pos
+from models import DrawCmd
 
 
 @dataclass
@@ -24,7 +24,6 @@ class TilesRegistry:
     """Registry for managing multiple tilesets."""
 
     tilesets: list[Tileset] = None
-    static_count = 0
 
     @classmethod
     def load_from_tiled(cls, directory: str, tiled: dict) -> "TilesRegistry":
@@ -46,10 +45,15 @@ class TilesRegistry:
 
         return cls(tilesets=result)
 
-    def draw_tile(self, canvas: HTMLCanvasElement, gid: int, position: Pos) -> None:
+    def draw_tile(
+        self,
+        canvas: HTMLCanvasElement,
+        cmd: DrawCmd,
+    ) -> None:
         """Draw a tile at the specified position."""
-        if self.static_count == 0:
-            print(f"Drawing tile with gid {gid} at position: {position}")
+        gid = cmd.tile_gid
+        position = cmd.position
+        scale = cmd.scale
         for tileset in self.tilesets:
             if tileset.firstgid <= gid < tileset.firstgid + tileset.tilecount:
                 tile_index = gid - tileset.firstgid
@@ -65,8 +69,8 @@ class TilesRegistry:
                     tileset.tileheight,
                     position.x,
                     position.y,
-                    tileset.tilewidth,
-                    tileset.tileheight,
+                    tileset.tilewidth * scale,
+                    tileset.tileheight * scale,
                 )
                 break
 

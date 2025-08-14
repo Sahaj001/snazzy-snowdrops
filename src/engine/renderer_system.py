@@ -113,6 +113,7 @@ class RenderSystem:
                         type=DrawCmdType.TEXT,
                         text=player.get_hud_info(),
                         position=hud_position,
+                        scale=self.camera.zoom,
                     ),
                 )
 
@@ -127,6 +128,7 @@ class RenderSystem:
                     type=DrawCmdType.DIALOG,
                     dialog=self.active_dialog,
                     position=dialog_position,
+                    scale=self.camera.zoom,
                 ),
             )
 
@@ -138,6 +140,7 @@ class RenderSystem:
                     **world.get_current_player().get_status_info(),
                     ticks=now,
                 ),
+                scale=self.camera.zoom,
             ),
         )
 
@@ -155,15 +158,15 @@ class RenderSystem:
         tile_map = world.tile_map
         tile_size_pixels = tile_map.tile_size  # pixels
 
-        start_tile_x = max(camera.x // tile_size_pixels, 0)
-        start_tile_y = max(camera.y // tile_size_pixels, 0)
+        start_tile_x = max(int(camera.x // tile_size_pixels), 0)
+        start_tile_y = max(int(camera.y // tile_size_pixels), 0)
 
         end_tile_x = min(
-            (camera.x + camera.screen_w) // tile_size_pixels,
+            int((camera.x + camera.screen_w / camera.zoom) // tile_size_pixels),
             tile_map.width,
         )
         end_tile_y = min(
-            (camera.y + camera.screen_h) // tile_size_pixels,
+            int((camera.y + camera.screen_h / camera.zoom) // tile_size_pixels),
             tile_map.height,
         )
 
@@ -191,6 +194,7 @@ class RenderSystem:
                                     position=Pos(screen_x, screen_y, tile.z),
                                     layer=tile.z,
                                     rotation=rotation,
+                                    scale=self.camera.zoom,
                                 ),
                             )
                         else:  # for tiled tiles without sprite_id
@@ -200,6 +204,7 @@ class RenderSystem:
                                     tile_gid=tile.gid,
                                     position=Pos(screen_x, screen_y, tile.z),
                                     layer=tile.z,
+                                    scale=self.camera.zoom,
                                 ),
                             )
         # 2. Draw collision boxes
@@ -211,6 +216,7 @@ class RenderSystem:
                         type=DrawCmdType.COLLISION,
                         position=Pos(screen_x, screen_y, 0),
                         collision_box=box,
+                        scale=self.camera.zoom,
                     ),
                 )
 
@@ -238,6 +244,7 @@ class RenderSystem:
                             sprite=sprite,
                             position=Pos(screen_x, screen_y, entity.pos.z),
                             layer=entity.pos.z,
+                            scale=self.camera.zoom,
                         ),
                     )
             except KeyError:

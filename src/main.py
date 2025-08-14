@@ -93,6 +93,7 @@ async def create_engine() -> GameEngine:
         screen_h=canvas.height,
         world_max_y=world_height_pixels,
         world_max_x=world_width_pixels,
+        zoom=1.25,
     )
 
     view_bridge = ViewBridge(canvas, input_system, tile_registry)
