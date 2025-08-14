@@ -1,8 +1,7 @@
 # Import necessary JS bindings
 import random
 
-import js
-from js import document, window
+from js import Event, document, performance, window
 from pyodide.ffi import create_proxy
 from pyodide.http import pyfetch
 
@@ -15,7 +14,10 @@ from engine import (
     SoundSystem,
     SpriteRegistry,
 )
+from engine.state import DelayState, PauseState
 from game import Fruit, Player, Tile, TileMap, Tree, TreeBehaviour, World
+from menu.main_menu import MainMenu
+from menu.pause_menu import PauseMenu
 from models import Pos
 from view import ViewBridge
 
@@ -188,38 +190,54 @@ def on_resize(engine: GameEngine) -> None:
 
 
 # ==== GAME LOOP ====
-def tick_frame(timestamp: float | None = None, *, engine) -> None:  # noqa: ANN001
+def tick_frame(engine, timestamp, lf_timestamp=0) -> None:  # noqa: ANN001
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
     # Update
-    engine.tick(dt)
+    if not PauseState.is_paused():
+        engine.tick(dt)
 
-    # Render
+    # Handle Camera
     player = engine.world.get_current_player()
     engine.renderer.camera.center_on(player.pos)
-    engine.render(timestamp)
+
+    # Render
+    engine.render(timestamp - DelayState.get_delay())
 
     # Clear the event bus after processing
     engine.event_bus.clear()
 
+    if PauseState.is_paused():
+        DelayState.accum_delay(timestamp - lf_timestamp)
+
     # Schedule next frame
     window.requestAnimationFrame(
-        create_proxy(lambda timestamp: tick_frame(timestamp, engine=engine)),
+        create_proxy(
+            lambda _: tick_frame(
+                engine=engine,
+                timestamp=performance.now(),
+                lf_timestamp=timestamp,
+            ),
+        ),
     )
 
 
 async def start() -> None:
     """Initialize the game engine and start the game loop."""
+    main_menu = MainMenu()
+    main_menu.make_visible()
+    PauseState.pause()
+
     engine = await create_engine()
 
-    def handle_resize(_event: js.Event) -> None:
+    def handle_resize(_event: Event) -> None:
         """Handle window resize events."""
         on_resize(engine)
 
     window.addEventListener("resize", create_proxy(handle_resize))
 
-    tick_frame(timestamp=0, engine=engine)
+    tick_frame(engine=engine, timestamp=0)
 
 
 async def load_json(path: str) -> dict:
