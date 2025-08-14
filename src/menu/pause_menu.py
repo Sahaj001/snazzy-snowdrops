@@ -4,6 +4,7 @@ from js import document
 
 from engine.state import PauseState
 from menu.main_menu import MainMenu
+from menu.settings_menu import SettingsMenu
 
 VISIBLE_CLASS = "visible"
 
@@ -42,7 +43,7 @@ class PauseMenu:
 
     def _settings_btn_onclick(self) -> None:
         self.hide()
-        PauseState.unpause()
+        SettingsMenu().make_visible(self)
 
     def is_visible(self) -> bool:
         return self._pause_menu.classList.contains(VISIBLE_CLASS)

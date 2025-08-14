@@ -57,6 +57,7 @@ ignore = [
     "D106",
     "C901",
     "D107",
+    "ANN202",
     # Docstring whitespace.
     "D203",
     "D213",
@@ -72,4 +73,6 @@ ignore = [
     "TD002",
     "TD003",
     "FIX",
+
+    "PGH003",
 ]
