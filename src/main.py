@@ -31,7 +31,7 @@ def add_player_to_world(world: World) -> None:
     world_height_pixels = world.tile_map.height * world.tile_map.tile_size
     player = Player(
         entity_id="player1",
-        pos=Pos(world_width_pixels // 2, world_height_pixels // 2, 1),
+        pos=Pos(world_width_pixels // 2, world_height_pixels // 2, PLAYER_Z),
         behaviour=None,
         hp=40,
         fatigue=20,
@@ -49,7 +49,7 @@ def add_fruits_to_world(world: World, num_fruits: int = 5) -> None:
             pos=Pos(
                 tile_x * world.tile_map.tile_size,
                 tile_y * world.tile_map.tile_size,
-                1,
+                FRUIT_Z,
             ),
             behaviour=None,
         )
@@ -70,10 +70,10 @@ async def create_engine() -> GameEngine:
     sprite_registry = SpriteRegistry()
     sprite_registry.load_from_json("assets/sprites.json")
 
-    tiled = await load_json("assets/tileset/example.tmj")
+    tiled = await load_json("assets/tilemap/cj.tmj")
 
     tile_registry = TilesRegistry.load_from_tiled(
-        directory="assets/tileset/",
+        directory="assets/tilemap/",
         tiled=tiled,
     )
 
