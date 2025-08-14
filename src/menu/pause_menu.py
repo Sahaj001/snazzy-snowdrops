@@ -24,7 +24,7 @@ class PauseMenu:
             self._main_menu_btn.onclick = lambda _: self._main_menu_btn_onclick()
             self._settings_btn.onclick = lambda _: self._settings_btn_onclick()
 
-            self._initialized = False
+            self._initialized = True
 
     def __new__(cls) -> Self:
         if cls._instance is None:
