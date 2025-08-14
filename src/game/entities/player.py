@@ -11,6 +11,7 @@ from models.direction import Direction
 
 if TYPE_CHECKING:
     from game.world import World
+    from models.direction import Direction
     from models.position import Pos
     from models.sprite import SpriteRegistry
 
