@@ -50,7 +50,7 @@ class Sprite(Drawable):
         """Draw a single sprite at a given position."""
         x, y = position.x, position.y
         w, h = self.size
-        ctx = canvas.getContext("2d")
+        ctx = canvas.getContext("2d", alpha=True)
         ctx.save()
         ctx.translate(x + w / 2, y + h / 2)
         ctx.rotate(rotation * (Math.PI / 180))

@@ -28,7 +28,7 @@ class SpriteRegistry:
     def load_from_json(self, _path: str) -> None:
         """Load sprite metadata from a JSON file."""
         # mock loading from json with some basic sprites like player and path
-        sprite_size = 50
+        sprite_size = 32
         self._sprites["player"] = Sprite(
             type=SpriteType.SPRITE,
             image_path="assets/sprites/player.png",
@@ -118,8 +118,8 @@ class RenderSystem:
 
         if self.active_dialog:
             dialog_position = Pos(
-                world.tiles.width * world.tiles.tile_size / 2,
-                world.tiles.height * world.tiles.tile_size / 2,
+                world.tile_map.width * world.tile_map.tile_size / 2,
+                world.tile_map.height * world.tile_map.tile_size / 2,
                 0,
             )
             draw_commands.append(
@@ -152,7 +152,7 @@ class RenderSystem:
         draw_commands = []
 
         # 1. Draw tiles from the tile map
-        tile_map = world.tiles
+        tile_map = world.tile_map
         tile_size_pixels = tile_map.tile_size  # pixels
 
         start_tile_x = max(camera.x // tile_size_pixels, 0)
@@ -169,27 +169,39 @@ class RenderSystem:
 
         for y in range(start_tile_y, end_tile_y + 1):
             for x in range(start_tile_x, end_tile_x + 1):
-                tile = tile_map.get(x, y)
-                if tile:
-                    sprite = self.sprites.get(tile.sprite_id)
+                tiles = tile_map.get(x, y)
+                if tiles:
+                    for tile in tiles:
+                        # check if tile has sprite id
+                        sprite = self.sprites.get(tile.sprite_id)
 
-                    world_x = x * tile_size_pixels
-                    world_y = y * tile_size_pixels
+                        world_x = x * tile_size_pixels
+                        world_y = y * tile_size_pixels
 
-                    screen_x, screen_y = camera.world_to_screen(world_x, world_y)
+                        screen_x, screen_y = camera.world_to_screen(world_x, world_y)
 
-                    rotation = 90 if tile.sprite_id == "horizontal_wall" else 0
+                        rotation = 90 if tile.sprite_id == "horizontal_wall" else 0
 
-                    # Create draw command
-                    draw_commands.append(
-                        DrawCmd(
-                            type=DrawCmdType.SPRITE,
-                            sprite=sprite,
-                            position=Pos(screen_x, screen_y, tile.z),
-                            layer=tile.z,
-                            rotation=rotation,
-                        ),
-                    )
+                        # Create draw command
+                        if sprite:  # for backward compatibility with sprite_id
+                            draw_commands.append(
+                                DrawCmd(
+                                    type=DrawCmdType.SPRITE,
+                                    sprite=sprite,
+                                    position=Pos(screen_x, screen_y, tile.z),
+                                    layer=tile.z,
+                                    rotation=rotation,
+                                ),
+                            )
+                        else:  # for tiled tiles without sprite_id
+                            draw_commands.append(
+                                DrawCmd(
+                                    type=DrawCmdType.TILE,
+                                    tile_gid=tile.gid,
+                                    position=Pos(screen_x, screen_y, tile.z),
+                                    layer=tile.z,
+                                ),
+                            )
 
         # 2. Draw entities (players, NPCs, items, etc.)
         for entity in world.entities:

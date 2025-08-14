@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
     from models.draw_cmd import DrawCmd
     from models.position import Pos
+    from models.tile import TilesRegistry
 
 ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape"]
 
@@ -21,10 +22,16 @@ ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "E
 class ViewBridge:
     """Abstracts the JS ↔ Pyodide interface."""
 
-    def __init__(self, canvas: HTMLCanvasElement, input_sys: InputSystem) -> None:
+    def __init__(
+        self,
+        canvas: HTMLCanvasElement,
+        input_sys: InputSystem,
+        tiles_registry: TilesRegistry = None,
+    ) -> None:
         self.canvas = canvas
-        self.ctx = canvas.getContext("2d")
+        self.ctx = canvas.getContext("2d", alpha=True)
         self._image_cache = {}
+        self.tiles_registry = tiles_registry
         self.input_sys = input_sys
         self._setup_event_handler()
 
@@ -63,6 +70,8 @@ class ViewBridge:
                     cmd.position,
                     cmd.rotation,
                 )
+            elif cmd.type == DrawCmdType.TILE:
+                self.tiles_registry.draw_tile(self.canvas, cmd.tile_gid, cmd.position)
             elif cmd.type == DrawCmdType.TEXT:
                 self.draw_text(
                     cmd.text,
@@ -72,6 +81,8 @@ class ViewBridge:
                 cmd.dialog.draw(self.canvas)
             elif cmd.type == DrawCmdType.STATUS_BAR:
                 cmd.status_bar.draw(self.canvas)
+
+        self.tiles_registry.static_count += 1
 
     def draw_text(
         self,
