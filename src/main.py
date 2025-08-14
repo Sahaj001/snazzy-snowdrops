@@ -17,7 +17,6 @@ from models import Pos, SpriteRegistry, TileMap, TilesRegistry
 from engine.state import DelayState, PauseState
 from game import Fruit, Player, World
 from menu.main_menu import MainMenu
-from menu.pause_menu import PauseMenu
 from view import ViewBridge
 
 # ==== INITIAL SETUP ====
