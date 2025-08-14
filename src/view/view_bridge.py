@@ -80,6 +80,11 @@ class ViewBridge:
                 cmd.dialog.update()
             elif cmd.type == DrawCmdType.INVENTORY_OVERLAY:
                 cmd.inventory_overlay.draw(self.canvas)
+                cmd.dialog.draw(self.canvas)
+            elif cmd.type == DrawCmdType.PUZZLE:
+                cmd.puzzle.draw(self.canvas)
+            elif cmd.type == DrawCmdType.STATUS_BAR:
+                cmd.status_bar.draw(self.canvas)
 
     def draw_collision_box(self, cmd: DrawCmd) -> None:
         """Draw a semi-transparent rectangle for collision boxes."""

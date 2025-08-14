@@ -18,6 +18,8 @@ class EventType(Enum):
 
     # interaction events
     FRUIT_PICKED = "fruit_picked"
+    BEGIN_PUZZLE = "begin_puzzle"
+    PUZZLE_INPUT = "puzzle_input"
 
     # game events
     GAME_PAUSED = "game_paused"

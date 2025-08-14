@@ -142,6 +142,14 @@ async def create_engine() -> GameEngine:
         inventory_overlay=world.inventory_ui
     )
     event_bus = EventBus()
+    event_bus.post(
+        GameEvent(
+            EventType.BEGIN_PUZZLE,
+            {
+                "puzzle_kind": "sliding_tiles_puzzle",
+            },
+        ),
+    )
 
     settings = Settings(
         event_bus=event_bus,

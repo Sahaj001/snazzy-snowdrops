@@ -7,6 +7,8 @@ from engine.state import GameState
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
 from ui import DialogBox, StatusBar, InventoryOverlay, InventoryState
+from models.sprite import Sprite, SpriteType
+from puzzles import puzzles
 
 if TYPE_CHECKING:
     from engine.camera import Camera
@@ -28,7 +30,7 @@ class RenderSystem:
         self.camera = camera
         self.active_dialog: DialogBox | None = None
         self.status_bar = StatusBar()
-        self.inventory_overlay: InventoryOverlay = inventory_overlay
+        self.active_puzzle: object | None = None
 
     def build_draw_queue(
         self,
@@ -65,13 +67,30 @@ class RenderSystem:
                 ),
             )
 
-        draw_commands.append(
-            DrawCmd(
-                type=DrawCmdType.INVENTORY_OVERLAY,
-                position=None,  # Position is handled by the InventoryOverlay class
-                inventory_overlay=self.inventory_overlay,
-            ),
-        )
+        if self.active_puzzle:
+            dialog_position = Pos(
+                world.tile_map.width * world.tile_map.tile_size / 2,
+                world.tile_map.height * world.tile_map.tile_size / 2,
+                0,
+            )
+            draw_commands.append(
+                DrawCmd(
+                    type=DrawCmdType.PUZZLE,
+                    puzzle=self.active_puzzle,
+                    position=dialog_position,
+                ),
+            )
+
+        # draw_commands.append(
+        #     DrawCmd(
+        #         type=DrawCmdType.STATUS_BAR,
+        #         position=None,  # Position is handled by the StatusBar class
+        #         status_bar=StatusBar(
+        #             **world.get_current_player().get_status_info(),
+        #             ticks=now,
+        #         ),
+        #     ),
+        # )
 
         return draw_commands
 
@@ -183,6 +202,12 @@ class RenderSystem:
                     print(f"Closing dialog: {self.active_dialog.text}")
                     self.active_dialog = None
                 event.consume()
+            elif event.event_type == EventType.DIALOG_INPUT:
+                self._handle_dialog_input_event(event)
+            elif event.event_type == EventType.BEGIN_PUZZLE:
+                self._handle_begin_puzzle_event(event)
+            elif event.event_type == EventType.PUZZLE_INPUT:
+                self._handle_puzzle_input_event(event)
 
         # update ui components like status bar
         if self.status_bar:
@@ -209,4 +234,41 @@ class RenderSystem:
             selected_index=selected_index,
             callback=callback,
         )
+        event.consume()
+
+    def _handle_dialog_input_event(self, event: GameEvent) -> None:
+        """Handle dialog input events."""
+        if self.active_dialog:
+            key = event.payload.get("key")
+            if key == "ArrowLeft":
+                self.active_dialog.selected_index = max(
+                    0,
+                    self.active_dialog.selected_index - 1,
+                )
+            elif key == "ArrowRight":
+                self.active_dialog.selected_index = min(
+                    len(self.active_dialog.options) - 1,
+                    self.active_dialog.selected_index + 1,
+                )
+            elif key == "Enter":
+                if self.active_dialog.callback:
+                    self.active_dialog.callback(
+                        self.active_dialog.options[self.active_dialog.selected_index],
+                    )
+                self.active_dialog = None
+            elif key == "Escape":
+                self.active_dialog = None
+        event.consume()
+
+    def _handle_begin_puzzle_event(self, event: GameEvent) -> None:
+        self.active_puzzle = puzzles[event.payload["puzzle_kind"]](event)
+        event.consume()
+
+    def _handle_puzzle_input_event(self, event: GameEvent) -> None:
+        if self.active_puzzle:
+            match event.payload.get("key"):
+                case "Escape":
+                    self.active_puzzle = None
+                case _:
+                    self.active_puzzle.handle_input(event.payload)
         event.consume()

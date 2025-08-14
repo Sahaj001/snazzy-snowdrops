@@ -20,6 +20,8 @@ class DrawCmdType(Enum):
     TEXT = "text"
     DIALOG = "dialog"
     INVENTORY_OVERLAY = "inventory_overlay"
+    STATUS_BAR = "status_bar"
+    PUZZLE = "puzzle"
 
 
 @dataclass
@@ -42,3 +44,4 @@ class DrawCmd:
     rotation: float = 0.0  # Rotation in degrees
     scale: float = 1.0  # Scale multiplier
     opacity: float = 1.0  # Transparency (1.0 = fully opaque)
+    puzzle: object | None = None
