@@ -13,10 +13,9 @@ from engine import (
     InputSystem,
     RenderSystem,
     SoundSystem,
-    SpriteRegistry,
 )
 from game import Fruit, Player, World
-from models import Pos, TileMap, TilesRegistry
+from models import Pos, SpriteRegistry, TileMap, TilesRegistry
 from view import ViewBridge
 
 # ==== INITIAL SETUP ====
@@ -25,22 +24,28 @@ PLAYER_Z = 1  # Player's z-index for rendering
 FRUIT_Z = 2
 
 
-def add_player_to_world(world: World) -> None:
+async def add_player_to_world(world: World) -> None:
     """Add a player to the world at the center position."""
     world_width_pixels = world.tile_map.width * world.tile_map.tile_size
     world_height_pixels = world.tile_map.height * world.tile_map.tile_size
+    player_sprite_registry_json = await load_json("assets/db/player.json")
+    player_sprite_registry = SpriteRegistry.load_from_json(player_sprite_registry_json)
+
     player = Player(
         entity_id="player1",
         pos=Pos(world_width_pixels // 2, world_height_pixels // 2, PLAYER_Z),
         behaviour=None,
         hp=40,
         fatigue=20,
+        sprite_registry=player_sprite_registry,
     )
     world.add_player(player)
 
 
-def add_fruits_to_world(world: World, num_fruits: int = 5) -> None:
+async def add_fruits_to_world(world: World, num_fruits: int = 5) -> None:
     """Add a specified number of fruits to the world at random positions."""
+    fruit_registry_json = await load_json("assets/db/fruit.json")
+    fruit_registry = SpriteRegistry.load_from_json(fruit_registry_json)
     for i in range(num_fruits):
         tile_x = random.randint(0, world.tile_map.width - 1)
         tile_y = random.randint(0, world.tile_map.height - 1)
@@ -52,6 +57,7 @@ def add_fruits_to_world(world: World, num_fruits: int = 5) -> None:
                 FRUIT_Z,
             ),
             behaviour=None,
+            sprite_registry=fruit_registry,
         )
         world.add_entity(fruit)
 
@@ -67,9 +73,6 @@ async def create_engine() -> GameEngine:
     canvas.height = window.innerHeight
     input_system = InputSystem()
 
-    sprite_registry = SpriteRegistry()
-    sprite_registry.load_from_json("assets/sprites.json")
-
     tiled = await load_json("assets/tilemap/cj.tmj")
 
     tile_registry = TilesRegistry.load_from_tiled(
@@ -83,8 +86,8 @@ async def create_engine() -> GameEngine:
     world_width_pixels = tile_map.width * tile_map.tile_size
     world_height_pixels = tile_map.height * tile_map.tile_size
 
-    add_player_to_world(world)
-    add_fruits_to_world(world, num_fruits=5)
+    await add_player_to_world(world)
+    await add_fruits_to_world(world, num_fruits=5)
 
     camera = Camera(
         x=2,
@@ -98,7 +101,6 @@ async def create_engine() -> GameEngine:
 
     view_bridge = ViewBridge(canvas, input_system, tile_registry)
     render_system = RenderSystem(
-        sprites=sprite_registry,
         view_bridge=view_bridge,
         camera=camera,
     )
@@ -129,7 +131,11 @@ def on_resize(engine: GameEngine) -> None:
 
 
 # ==== GAME LOOP ====
-def tick_frame(timestamp: float | None = None, *, engine) -> None:  # noqa: ANN001
+def tick_frame(
+    timestamp: float | None = None,
+    *,
+    engine: GameEngine,
+) -> None:
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 

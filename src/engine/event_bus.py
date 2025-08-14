@@ -7,7 +7,8 @@ from enum import Enum
 class EventType(Enum):
     """Types of events that can be posted to the EventBus."""
 
-    INPUT = "input"
+    MOUSE_CLICK = "click"
+    PLAYER_MOVED = "player_moved"
     UI_UPDATE = "ui_update"
     ASK_DIALOG = "ask_dialog"
     DIALOG_INPUT = "dialog_input"

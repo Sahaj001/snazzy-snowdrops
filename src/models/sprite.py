@@ -1,23 +1,9 @@
 from dataclasses import dataclass
-from enum import Enum
 
 from js import HTMLCanvasElement, Image, Math
 
 from engine.interfaces import Drawable
 from models.draw_cmd import DrawCmd
-
-
-class SpriteType(Enum):
-    """Enumeration of different sprite rendering types."""
-
-    SPRITE = "sprite"  # Image-based sprite
-    RECT = "rect"  # Rectangle/square
-    CIRCLE = "circle"  # Circle/ellipse
-    TEXT = "text"  # Text rendering
-    LINE = "line"  # Line drawing
-    POLYGON = "polygon"  # Custom polygon
-    TILE = "tile"  # Tile sprite (for tilemaps)
-    EDIBLE = "edible"  # Edible entities
 
 
 @dataclass
@@ -28,11 +14,8 @@ class Sprite(Drawable):
     """
 
     image_path: str  # Path to the sprite image file
-    type: SpriteType
     size: tuple[int, int]  # (width, height) in pixels
     frame_count: int = 1  # Number of animation frames
-    frame_time: float = 0.1  # Time per frame in seconds
-    loop: bool = True  # Whether the animation loops
     origin: tuple[int, int] = (0, 0)  # Pivot/origin for rotation/scaling
     tint: tuple[int, int, int] | None = None  # RGB color tint (if any)
 
@@ -54,5 +37,50 @@ class Sprite(Drawable):
 
         ctx.translate(x + w / 2, y + h / 2)
         ctx.rotate(cmd.rotation * (Math.PI / 180))
-        ctx.drawImage(img, -w / 2, -h / 2, w * cmd.scale, h * cmd.scale)
+
+        if self.is_animated():
+            source_x = cmd.frame_idx * w
+            source_y = 0
+            ctx.drawImage(
+                img,
+                source_x,
+                source_y,
+                w,
+                h,
+                -w / 2,
+                -h / 2,
+                w * cmd.scale,
+                h * cmd.scale,
+            )
+        else:
+            ctx.drawImage(img, -w / 2, -h / 2, w * cmd.scale, h * cmd.scale)
         ctx.restore()
+
+
+class SpriteRegistry:
+    """Stores and retrieves sprite data."""
+
+    def __init__(self) -> None:
+        self._sprites: dict[str, Sprite] = {}
+
+    def get(self, sprite_id: str) -> Sprite:
+        """Retrieve a sprite by its ID."""
+        return self._sprites.get(sprite_id, None)
+
+    def add(self, state: str, sprite: Sprite) -> None:
+        """Add a new sprite to the registry."""
+        self._sprites[state] = sprite
+
+    @classmethod
+    def load_from_json(cls, data: dict) -> "SpriteRegistry":
+        """Load sprite metadata from a JSON file."""
+        sprite_registry = cls()
+        for state, info in data["state"].items():
+            sprite = Sprite(
+                image_path=info["image_path"],
+                size=(info["width"], info["height"]),
+                frame_count=info["frame_count"],
+            )
+            sprite_registry.add(state, sprite)
+
+        return sprite_registry

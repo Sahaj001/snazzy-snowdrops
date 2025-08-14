@@ -37,28 +37,28 @@ class GameEngine:
         """Advance the game state by dt seconds."""
         input_events = self.input.consume_events()
 
-        for event in input_events:
-            print(f"Processing input event: {event}")
-            if event.input_type == InputType.CLICK:
-                screen_x, screen_y = event.position
+        for input_event in input_events:
+            print(f"[Game Engine] Processing input event: {input_event}")
+            if input_event.input_type == InputType.CLICK:
+                screen_x, screen_y = input_event.position
                 world_x, world_y = self.renderer.camera.screen_to_world(
                     screen_x,
                     screen_y,
                 )
                 self.event_bus.post(
                     GameEvent(
-                        event_type=EventType.INPUT,
+                        event_type=EventType.MOUSE_CLICK,
                         payload={"type": "click", "position": (world_x, world_y)},
                     ),
                 )
 
                 self.sound_sys.play_sfx("btn-click")
-            elif event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
-                event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.INPUT
+            elif input_event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
+                event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.PLAYER_MOVED
                 self.event_bus.post(
                     GameEvent(
                         event_type=event_type,
-                        payload={"type": "key", "key": event.key},
+                        payload={"type": "key", "key": input_event.key},
                     ),
                 )
 

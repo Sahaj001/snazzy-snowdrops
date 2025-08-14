@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType
 from models import Pos, TileMap
-from models.direction import Direction
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
@@ -57,11 +56,6 @@ class World:
 
         # If all checks pass, the location is considered passable
         for box in self.tile_map.collision_boxes:
-            # print all the conditions for debugging
-            print(
-                f"Checking collision box: {box.id} at ({box.x}, {box.y}) "
-                f"with size ({box.width}, {box.height}) for point ({x}, {y})",
-            )
             if box.x <= x < box.x + box.width and box.y <= y < box.y + box.height:
                 return box.passable
 
@@ -72,33 +66,11 @@ class World:
         events = event_bus.get_events()
 
         for event in events:
-            if event.event_type == EventType.INPUT:
-                self._handle_input(event.payload, event_bus)
+            if event.event_type == EventType.MOUSE_CLICK:
+                self._handle_click_event(event.payload, event_bus)
                 event.consume()
-            elif event.event_type == EventType.FRUIT_PICKED:
-                self._handle_fruit_picked(event.payload)
-                event.consume()
-
         for e in self.entities:
-            e.update(self, dt)
-
-    def _handle_fruit_picked(self, payload: dict) -> None:
-        """Handle fruit picked events."""
-        fruit_id = payload.get("fruit_id")
-        fruit = self.get_entity_by_id(fruit_id)
-        if fruit:
-            self.remove_entity(fruit)
-
-    def _handle_input(self, payload: dict, event_bus: EventBus) -> None:
-        """Handle input events like clicks or key presses."""
-        print("_handle_input payload", payload)
-        etype = payload["type"]
-        if etype == "key":
-            self._handle_key_event(payload)
-        elif etype == "click":
-            self._handle_click_event(payload, event_bus)
-        else:
-            print(f"Unhandled input event type: {etype}")
+            e.update(dt, events=events, world=self)
 
     def _check_if_click_on_entity(
         self,
@@ -138,23 +110,6 @@ class World:
                 self.players[0] if self.players else None,
                 event_bus,
             )
-
-    def _handle_key_event(self, payload: dict) -> None:
-        """Handle key events for player movement."""
-        key = payload["key"]
-
-        player = self.players[0] if self.players else None
-        if not player:
-            return
-
-        if key == "ArrowUp":
-            player.move(Direction.UP, self)
-        elif key == "ArrowDown":
-            player.move(Direction.DOWN, self)
-        elif key == "ArrowLeft":
-            player.move(Direction.LEFT, self)
-        elif key == "ArrowRight":
-            player.move(Direction.RIGHT, self)
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""

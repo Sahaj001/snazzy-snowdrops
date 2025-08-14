@@ -31,6 +31,7 @@ class DrawCmd:
     position: "Pos"
     type: DrawCmdType = DrawCmdType.SPRITE
     sprite: Optional["Sprite"] = None
+    frame_idx: int = 0
     dialog: Optional["DialogBox"] = None
     status_bar: Optional["StatusBar"] = None
     tile_gid: int = 0  # For tile rendering

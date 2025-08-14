@@ -1,0 +1,17 @@
+{
+    "name": "fruit",
+    "state": {
+        "fresh": {
+            "image_path": "assets/sprites/fruit.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 0
+        },
+        "picked": {
+            "image_path": "assets/sprites/fruit_picked.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 5
+        }
+    }
+}

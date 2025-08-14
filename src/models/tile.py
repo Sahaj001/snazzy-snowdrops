@@ -79,7 +79,6 @@ class TilesRegistry:
 class Tile:
     """Represents a single tile in the world."""
 
-    sprite_id: str = ""  # backward compatibility
     gid: int = 0  # Global ID of the tile
     z: int = 0
     passable: bool = False
