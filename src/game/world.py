@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType
 from models import Pos, TileMap
-from models.direction import Direction
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus

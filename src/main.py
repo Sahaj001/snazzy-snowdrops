@@ -129,7 +129,9 @@ def on_resize(engine: GameEngine) -> None:
 
 
 # ==== GAME LOOP ====
-def tick_frame(engine, timestamp, lf_timestamp=0) -> None:  # noqa: ANN001
+def tick_frame(
+    engine: GameEngine, timestamp: float | None = None, lf_timestamp: int = 0
+) -> None:  # noqa: ANN001
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
