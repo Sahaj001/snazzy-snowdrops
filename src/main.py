@@ -15,121 +15,46 @@ from engine import (
     SpriteRegistry,
 )
 from engine.state import DelayState, PauseState
-from game import Fruit, Player, Tile, TileMap, Tree, TreeBehaviour, World
+from game import Fruit, Player, World
 from menu.main_menu import MainMenu
-from models import Pos
+from models import Pos, TileMap, TilesRegistry
 from view import ViewBridge
 
 # ==== INITIAL SETUP ====
-VERTICAL_WALL_X = 5
-VERTICAL_WALL_Y_START = 3
-VERTICAL_WALL_Y_END = 8
-HORIZONTAL_WALL_Y = 7
-HORIZONTAL_WALL_X_START = 8
-HORIZONTAL_WALL_X_END = 12
-
-WORLD_WIDTH_PIXELS = 2000
-WORLD_HEIGHT_PIXELS = 2000
-TILE_SIZE_PIXELS = 50  # pixels
 
 PLAYER_Z = 1  # Player's z-index for rendering
 FRUIT_Z = 2
-TREE_Z = 3  # Tree's z-index for rendering
-WALL_Z = 1  # Wall's z-index for rendering
-GRASS_Z = 0  # Grass z-index for rendering
 
 
-def generate_tile_map() -> TileMap:
-    """Generate a larger tile map with perimeter walls and random internal walls."""
-    tile_size = TILE_SIZE_PIXELS
-    width, height = WORLD_WIDTH_PIXELS // tile_size, WORLD_HEIGHT_PIXELS // tile_size
-
-    game_tile_map = TileMap(width, height, tile_size)
-
-    # Set random seed for consistent world generation
-    random.seed(42)
-    wall_in_screen_probability = 0.08
-
-    for y in range(height):
-        for x in range(width):
-            # Perimeter walls
-            if x == 0 or x == width - 1:
-                tile = Tile("horizontal_wall", passable=False, z=WALL_Z)
-            elif y == 0 or y == height - 1:
-                tile = Tile("vertical_wall", passable=False, z=WALL_Z)
-            # Random internal walls (sparse distribution)
-            elif random.random() < wall_in_screen_probability:
-                tile = Tile("horizontal_wall", passable=False, z=WALL_Z)
-            else:
-                tile = Tile("grass", passable=True, z=GRASS_Z)
-
-            game_tile_map.set(x, y, tile)
-
-    # Create some guaranteed pathways to prevent isolated areas
-    # Horizontal pathways
-    for pathway_y in range(10, height - 10, 15):
-        for x in range(1, width - 1):
-            game_tile_map.set(x, pathway_y, Tile("grass", passable=True, z=GRASS_Z))
-
-    # Vertical pathways
-    for pathway_x in range(10, width - 10, 15):
-        for y in range(1, height - 1):
-            game_tile_map.set(pathway_x, y, Tile("grass", passable=True, z=GRASS_Z))
-
-    print(f"Large tile map generated with dimensions: {width} x {height}")
-    return game_tile_map
-
-
-def generate_world(game_tile_map: TileMap) -> World:
-    """Create a new world with the given tile map and random entities."""
-    game_world = World(tiles=game_tile_map)
-
-    # Player in center of world
-    center_x = WORLD_WIDTH_PIXELS // 2
-    center_y = WORLD_HEIGHT_PIXELS // 2
+def add_player_to_world(world: World) -> None:
+    """Add a player to the world at the center position."""
+    world_width_pixels = world.tile_map.width * world.tile_map.tile_size
+    world_height_pixels = world.tile_map.height * world.tile_map.tile_size
     player = Player(
         entity_id="player1",
-        pos=Pos(center_x, center_y, PLAYER_Z),
+        pos=Pos(world_width_pixels // 2, world_height_pixels // 2, PLAYER_Z),
         behaviour=None,
         hp=40,
         fatigue=20,
     )
-    game_world.add_player(player)
-
-    random.seed(123)
-
-    # Generate random fruits across the world
-    num_fruits = 50
-    for idx in range(num_fruits):
-        # Avoid placing near edges
-        x = random.randint(3, (WORLD_WIDTH_PIXELS // TILE_SIZE_PIXELS) - 3) * TILE_SIZE_PIXELS
-        y = random.randint(3, (WORLD_HEIGHT_PIXELS // TILE_SIZE_PIXELS) - 3) * TILE_SIZE_PIXELS
-
-        tile_x, tile_y = x // TILE_SIZE_PIXELS, y // TILE_SIZE_PIXELS
-        if game_tile_map.get(tile_x, tile_y).passable:
-            fruit = Fruit(f"fruit_{idx}", pos=Pos(x, y, FRUIT_Z), behaviour=None)
-            game_world.add_entity(fruit)
-
-    # Generate random trees
-    num_trees = 30
-    for idx in range(num_trees):
-        x = random.randint(5, (WORLD_WIDTH_PIXELS // TILE_SIZE_PIXELS) - 5) * TILE_SIZE_PIXELS
-        y = random.randint(5, (WORLD_HEIGHT_PIXELS // TILE_SIZE_PIXELS) - 5) * TILE_SIZE_PIXELS
-
-        tile_x, tile_y = x // TILE_SIZE_PIXELS, y // TILE_SIZE_PIXELS
-        if game_tile_map.get(tile_x, tile_y).passable:
-            tree = Tree(
-                f"tree_{idx}",
-                pos=Pos(x, y, TREE_Z),
-                behaviour=TreeBehaviour(),
-            )
-            game_world.add_entity(tree)
-
-    print(f"World generated with {num_fruits} fruits and {num_trees} trees")
-    return game_world
+    world.add_player(player)
 
 
-world = generate_world(generate_tile_map())
+def add_fruits_to_world(world: World, num_fruits: int = 5) -> None:
+    """Add a specified number of fruits to the world at random positions."""
+    for i in range(num_fruits):
+        tile_x = random.randint(0, world.tile_map.width - 1)
+        tile_y = random.randint(0, world.tile_map.height - 1)
+        fruit = Fruit(
+            fruit_id=f"fruit_{i}",
+            pos=Pos(
+                tile_x * world.tile_map.tile_size,
+                tile_y * world.tile_map.tile_size,
+                FRUIT_Z,
+            ),
+            behaviour=None,
+        )
+        world.add_entity(fruit)
 
 
 async def create_engine() -> GameEngine:
@@ -142,27 +67,42 @@ async def create_engine() -> GameEngine:
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
     input_system = InputSystem()
-    view_bridge = ViewBridge(canvas, input_system)
 
     sprite_registry = SpriteRegistry()
     sprite_registry.load_from_json("assets/sprites.json")
 
-    # 4. Create systems
+    tiled = await load_json("assets/tilemap/cj.tmj")
+
+    tile_registry = TilesRegistry.load_from_tiled(
+        directory="assets/tilemap/",
+        tiled=tiled,
+    )
+
+    tile_map = TileMap.load_from_tiled(tiled)
+
+    world = World(tile_map=tile_map)
+    world_width_pixels = tile_map.width * tile_map.tile_size
+    world_height_pixels = tile_map.height * tile_map.tile_size
+
+    add_player_to_world(world)
+    add_fruits_to_world(world, num_fruits=5)
+
     camera = Camera(
         x=2,
         y=2,
         screen_w=canvas.width,
         screen_h=canvas.height,
-        world_max_y=WORLD_HEIGHT_PIXELS,
-        world_max_x=WORLD_WIDTH_PIXELS,
+        world_max_y=world_height_pixels,
+        world_max_x=world_width_pixels,
     )
+
+    view_bridge = ViewBridge(canvas, input_system, tile_registry)
     render_system = RenderSystem(
         sprites=sprite_registry,
         view_bridge=view_bridge,
         camera=camera,
     )
     event_bus = EventBus()
-    world = generate_world(generate_tile_map())
 
     sound_sys = SoundSystem(
         bgm_map=await load_json("assets/audio/bgm.json"),

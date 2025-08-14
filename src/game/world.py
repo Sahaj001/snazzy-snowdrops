@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType
-from models.position import Pos
+from models import Pos, TileMap
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
@@ -12,49 +11,16 @@ if TYPE_CHECKING:
     from game.entities.player import Player
 
 
-@dataclass
-class Tile:
-    """Represents a single tile in the world."""
-
-    sprite_id: str
-    z: int = 0
-    passable: bool = False
-
-
-class TileMap:
-    """Grid of tiles that makes up the world terrain."""
-
-    def __init__(self, width: int, height: int, tile_size: int) -> None:
-        self.width = width
-        self.height = height
-        self.tile_size = tile_size
-        # 2D array: tiles[y][x]
-        self.tiles: list[list[Tile | None]] = [[None for _ in range(width)] for _ in range(height)]
-
-    def get(self, x: int, y: int) -> Tile | None:
-        """Get the tile at given coordinates."""
-        if 0 <= x < self.width and 0 <= y < self.height:
-            return self.tiles[y][x]
-        return None
-
-    def set(self, x: int, y: int, tile: Tile) -> None:
-        """Set the tile at given coordinates."""
-        if 0 <= x < self.width and 0 <= y < self.height:
-            self.tiles[y][x] = tile
-
-    def is_passable(self, x: int, y: int) -> bool:
-        """Check if a tile can be walked on."""
-        tile = self.get(x, y)
-        return tile.passable if tile else False
-
-
 class World:
     """The game world, containing all entities and the tile map."""
 
-    def __init__(self, tiles: TileMap) -> None:
+    def __init__(
+        self,
+        tile_map: TileMap,
+    ) -> None:
         self.players: list[Player] = []
         self.entities: list[Entity] = []
-        self.tiles = tiles
+        self.tile_map = tile_map
 
     def find_near(self, pos: Pos, radius: int) -> list[Entity]:
         """Find all entities within `radius` of the given position using Chebyshev distance."""
@@ -70,9 +36,9 @@ class World:
     def is_passable(self, x: int, y: int) -> bool:
         """Check if a location is passable in the tile map."""
         # First check if the tile itself is passable
-        if not self.tiles.is_passable(
-            x // self.tiles.tile_size,
-            y // self.tiles.tile_size,
+        if not self.tile_map.is_passable(
+            x // self.tile_map.tile_size,
+            y // self.tile_map.tile_size,
         ):
             return False
 
@@ -133,7 +99,7 @@ class World:
         clickable_entities = []
         for entity in entities:
             entity_tile_x, entity_tile_y = entity.pos.tile_position(
-                self.tiles.tile_size,
+                self.tile_map.tile_size,
             )
             if entity_tile_x == tile_x and entity_tile_y == tile_y:
                 clickable_entities.append(entity)
@@ -147,12 +113,12 @@ class World:
 
         # Convert world coordinates to tile coordinates
         tile_x, tile_y = (
-            world_x // self.tiles.tile_size,
-            world_y // self.tiles.tile_size,
+            world_x // self.tile_map.tile_size,
+            world_y // self.tile_map.tile_size,
         )
 
         player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
-        entities_in_scope = self.find_near(player_pos, self.tiles.tile_size)
+        entities_in_scope = self.find_near(player_pos, self.tile_map.tile_size)
         clicked_entity = self._check_if_click_on_entity(
             tile_x,
             tile_y,
@@ -174,13 +140,13 @@ class World:
             return
 
         if key == "ArrowUp":
-            player.move(0, -1 * self.tiles.tile_size, self)
+            player.move(0, -1 * self.tile_map.tile_size, self)
         elif key == "ArrowDown":
-            player.move(0, 1 * self.tiles.tile_size, self)
+            player.move(0, 1 * self.tile_map.tile_size, self)
         elif key == "ArrowLeft":
-            player.move(-1 * self.tiles.tile_size, 0, self)
+            player.move(-1 * self.tile_map.tile_size, 0, self)
         elif key == "ArrowRight":
-            player.move(1 * self.tiles.tile_size, 0, self)
+            player.move(1 * self.tile_map.tile_size, 0, self)
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""

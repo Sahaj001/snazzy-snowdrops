@@ -24,7 +24,7 @@ class DialogBox(Drawable):
         width, height = 300, 150
         x, y = (canvas.width - width) // 2, (canvas.height - height) // 2
 
-        ctx = canvas.getContext("2d")
+        ctx = canvas.getContext("2d", alpha=True)
 
         # Background
         ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
