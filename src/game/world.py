@@ -70,7 +70,7 @@ class World:
                 self._handle_click_event(event.payload, event_bus)
                 event.consume()
         for e in self.entities:
-            e.update(dt, events=events, world=self)
+            e.update(time_delta=dt, events=events, world=self)
 
     def _check_if_click_on_entity(
         self,
