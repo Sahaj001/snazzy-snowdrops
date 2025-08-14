@@ -56,7 +56,22 @@ class World:
 
         # If all checks pass, the location is considered passable
         for box in self.tile_map.collision_boxes:
-            if box.x <= x < box.x + box.width and box.y <= y < box.y + box.height:
+            # player has width and height
+            # check rectangle collision
+            player_width, player_height = (
+                self.tile_map.tile_size,
+                self.tile_map.tile_size,
+            )
+
+            def rects_overlap(r1: tuple, r2: tuple) -> bool:
+                x1, y1, w1, h1 = r1
+                x2, y2, w2, h2 = r2
+                return x1 < x2 + w2 and x1 + w1 > x2 and y1 < y2 + h2 and y1 + h1 > y2
+
+            if rects_overlap(
+                (box.x, box.y, box.width, box.height),
+                (x, y, player_width, player_height),
+            ):
                 return box.passable
 
         return True

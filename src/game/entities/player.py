@@ -49,7 +49,7 @@ class Player(Entity, Living, Interactable):
         self.fatigue = fatigue
         self.max_intelligence = 100
         self.max_fatigue = 100
-        self.step_size = 20  # in pixel
+        self.step_size = 10  # in pixel
         self.state = PlayerState.IDLE
 
     def move(self, key: str, world: World) -> None:

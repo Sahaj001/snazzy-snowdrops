@@ -85,7 +85,7 @@ class ViewBridge:
         """Draw a semi-transparent rectangle for collision boxes."""
         position = cmd.position
         collision = cmd.collision_box
-        self.ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
+        self.ctx.fillStyle = "rgba(128, 128, 128, 0.4)"
         self.ctx.fillRect(
             position.x,
             position.y,
