@@ -3,6 +3,7 @@ from typing import Self
 from js import document, performance
 
 from engine.state import DelayState, PauseState
+from menu.settings_menu import SettingsMenu
 
 VISIBLE_CLASS = "visible"
 
@@ -43,7 +44,7 @@ class MainMenu:
 
     def _settings_btn_onclick(self) -> None:
         self.hide()
-        PauseState.unpause()
+        SettingsMenu().make_visible(self)
 
     def is_visible(self) -> bool:
         return self._main_menu.classList.contains(VISIBLE_CLASS)

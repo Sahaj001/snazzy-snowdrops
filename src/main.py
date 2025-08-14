@@ -17,6 +17,7 @@ from engine import (
 from engine.state import DelayState, PauseState
 from game import Fruit, Player, World
 from menu.main_menu import MainMenu
+from menu.settings_menu import SettingsMenu
 from models import Pos, TileMap, TilesRegistry
 from view import ViewBridge
 
@@ -57,7 +58,7 @@ def add_fruits_to_world(world: World, num_fruits: int = 5) -> None:
         world.add_entity(fruit)
 
 
-async def create_engine() -> GameEngine:
+async def create_engine(sound_sys: SoundSystem) -> GameEngine:
     """Create and return the game engine."""
     # Ensure all systems are initialized
     await load_json("assets/audio/bgm.json")
@@ -104,10 +105,6 @@ async def create_engine() -> GameEngine:
     )
     event_bus = EventBus()
 
-    sound_sys = SoundSystem(
-        bgm_map=await load_json("assets/audio/bgm.json"),
-        sfx_map=await load_json("assets/audio/sfx.json"),
-    )
     return GameEngine(
         world=world,
         renderer=render_system,
@@ -164,11 +161,19 @@ def tick_frame(engine, timestamp, lf_timestamp=0) -> None:  # noqa: ANN001
 
 async def start() -> None:
     """Initialize the game engine and start the game loop."""
+    sound_sys = SoundSystem(
+        bgm_map=await load_json("assets/audio/bgm.json"),
+        sfx_map=await load_json("assets/audio/sfx.json"),
+    )
+
+    SettingsMenu(sound_sys)  # initialize SettingsMenu with sound_sys
+
     main_menu = MainMenu()
     main_menu.make_visible()
+
     PauseState.pause()
 
-    engine = await create_engine()
+    engine = await create_engine(sound_sys)
 
     def handle_resize(_event: Event) -> None:
         """Handle window resize events."""
