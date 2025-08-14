@@ -15,6 +15,7 @@ from engine import (
     SoundSystem,
     SpriteRegistry,
 )
+from engine.event_bus import EventType, GameEvent
 from game import Fruit, Player, World
 from models import Pos, TileMap, TilesRegistry
 from view import ViewBridge
@@ -102,6 +103,14 @@ async def create_engine() -> GameEngine:
         camera=camera,
     )
     event_bus = EventBus()
+    event_bus.post(
+        GameEvent(
+            EventType.BEGIN_PUZZLE,
+            {
+                "puzzle_kind": "sliding_tiles_puzzle",
+            },
+        ),
+    )
 
     sound_sys = SoundSystem(
         bgm_map=await load_json("assets/audio/bgm.json"),

@@ -6,6 +6,7 @@ from engine.event_bus import EventType, GameEvent
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
 from models.sprite import Sprite, SpriteType
+from puzzles import puzzles
 from ui import DialogBox, StatusBar
 
 if TYPE_CHECKING:
@@ -75,6 +76,7 @@ class RenderSystem:
         self.camera = camera
         self.ui_overlays = {}  # overlay_id / sprite_id -> expiry_time
         self.active_dialog: DialogBox | None = None
+        self.active_puzzle: object | None = None
 
     def build_draw_queue(
         self,
@@ -126,6 +128,20 @@ class RenderSystem:
                 DrawCmd(
                     type=DrawCmdType.DIALOG,
                     dialog=self.active_dialog,
+                    position=dialog_position,
+                ),
+            )
+
+        if self.active_puzzle:
+            dialog_position = Pos(
+                world.tile_map.width * world.tile_map.tile_size / 2,
+                world.tile_map.height * world.tile_map.tile_size / 2,
+                0,
+            )
+            draw_commands.append(
+                DrawCmd(
+                    type=DrawCmdType.PUZZLE,
+                    puzzle=self.active_puzzle,
                     position=dialog_position,
                 ),
             )
@@ -262,6 +278,10 @@ class RenderSystem:
                 self._handle_ask_dialog_event(event)
             elif event.event_type == EventType.DIALOG_INPUT:
                 self._handle_dialog_input_event(event)
+            elif event.event_type == EventType.BEGIN_PUZZLE:
+                self._handle_begin_puzzle_event(event)
+            elif event.event_type == EventType.PUZZLE_INPUT:
+                self._handle_puzzle_input_event(event)
 
     def _handle_ui_update_event(self, event: GameEvent, now: float) -> None:
         """Handle UI update events."""
@@ -307,4 +327,17 @@ class RenderSystem:
                 self.active_dialog = None
             elif key == "Escape":
                 self.active_dialog = None
+        event.consume()
+
+    def _handle_begin_puzzle_event(self, event: GameEvent) -> None:
+        self.active_puzzle = puzzles[event.payload["puzzle_kind"]](event)
+        event.consume()
+
+    def _handle_puzzle_input_event(self, event: GameEvent) -> None:
+        if self.active_puzzle:
+            match event.payload.get("key"):
+                case "Escape":
+                    self.active_puzzle = None
+                case _:
+                    self.active_puzzle.handle_input(event.payload)
         event.consume()

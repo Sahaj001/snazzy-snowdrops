@@ -79,6 +79,8 @@ class ViewBridge:
                 )
             elif cmd.type == DrawCmdType.DIALOG:
                 cmd.dialog.draw(self.canvas)
+            elif cmd.type == DrawCmdType.PUZZLE:
+                cmd.puzzle.draw(self.canvas)
             elif cmd.type == DrawCmdType.STATUS_BAR:
                 cmd.status_bar.draw(self.canvas)
 
