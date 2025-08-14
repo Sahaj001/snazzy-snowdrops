@@ -17,7 +17,6 @@ from engine import (
 from engine.state import DelayState, PauseState
 from game import Fruit, Player, Tile, TileMap, Tree, TreeBehaviour, World
 from menu.main_menu import MainMenu
-from menu.pause_menu import PauseMenu
 from models import Pos
 from view import ViewBridge
 
