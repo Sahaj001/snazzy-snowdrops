@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Pyodide Game Test</title>
     <style>
         body {
@@ -16,19 +16,45 @@
             display: block;
             width: 100vw;
             height: 100vh;
-            background: transparent;
+            background: white;
+        }
+
+        .menu {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 1;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .menu.visible {
+            display: flex;
         }
     </style>
 </head>
 
 <body>
     <canvas id="gameCanvas"></canvas>
+    <div id="main-menu" class="menu">
+        <button class="continue">Continue</button>
+        <button class="new-game">New Game</button>
+        <button class="settings">Settings</button>
+    </div>
+    <div id="pause-menu" class="menu">
+        <button class="continue">Continue</button>
+        <button class="main-menu-btn">Main Menu</button>
+        <button class="settings">Settings</button>
+    </div>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
     <script src="js/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.0/umd/index.js"></script>
-    <script>
-
-    </script>
 </body>
 
 </html>
