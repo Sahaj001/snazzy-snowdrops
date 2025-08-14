@@ -81,6 +81,18 @@ class Tile:
     passable: bool = False
 
 
+@dataclass
+class ObjectTile:
+    """Represents an object tile in the world."""
+
+    id: str
+    x: int
+    y: int
+    width: int
+    height: int
+    passable: bool = False
+
+
 class TileMap:
     """Grid of tiles that makes up the world terrain."""
 
@@ -89,6 +101,7 @@ class TileMap:
         self.height = height
         self.tile_size = tile_size
         self.tiles: dict[tuple[int, int], list[Tile]] = defaultdict(list)
+        self.collision_boxes: list[ObjectTile] = []
 
     def get(self, x: int, y: int) -> list[Tile] | None:
         """Get the tile at given coordinates."""
@@ -103,6 +116,10 @@ class TileMap:
         """Check if a tile can be walked on."""
         tile = self.get(x, y)
         return tile is not None and all(t.passable for t in tile)
+
+    def add_collision_box(self, obj: ObjectTile) -> None:
+        """Add a collision box to the tile map."""
+        self.collision_boxes.append(obj)
 
     @classmethod
     def load_from_tiled(cls, tiled: dict) -> "TileMap":
@@ -121,4 +138,16 @@ class TileMap:
                         y = idx // tile_map.width
                         tile = Tile(gid=gid, z=0, passable=True)
                         tile_map.set(x, y, tile)
+            elif layer["type"] == "objectgroup":
+                for obj in layer["objects"]:
+                    tile_map.add_collision_box(
+                        ObjectTile(
+                            id=obj["id"],
+                            x=obj["x"],
+                            y=obj["y"],
+                            width=obj["width"],
+                            height=obj["height"],
+                            passable=obj.get("properties", {}).get("passable", False),
+                        ),
+                    )
         return tile_map

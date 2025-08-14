@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from models.tile import ObjectTile
 from ui import DialogBox, StatusBar
 
 from .position import Pos
@@ -12,6 +13,7 @@ class DrawCmdType(Enum):
 
     SPRITE = "sprite"
     TILE = "tile"
+    COLLISION = "collision"
     TEXT = "text"
     DIALOG = "dialog"
     STATUS_BAR = "status_bar"
@@ -30,6 +32,7 @@ class DrawCmd:
     dialog: DialogBox | None = None
     status_bar: StatusBar | None = None
     tile_gid: int = 0  # For tile rendering
+    collision_box: ObjectTile | None = None
     text: str | None = None
     layer: int = 0  # Rendering order (higher = drawn later, on top)
     rotation: float = 0.0  # Rotation in degrees

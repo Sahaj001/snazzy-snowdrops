@@ -9,6 +9,7 @@ from game.inventory import Inventory
 
 if TYPE_CHECKING:
     from game.world import World
+    from models.direction import Direction
     from models.position import Pos
 
 
@@ -37,11 +38,13 @@ class Player(Entity, Living, Interactable):
         self.max_intelligence = max_intelligence
         self.fatigue = fatigue
         self.max_fatigue = max_fatigue
+        self.step_size = 1
 
-    def move(self, dx: int, dy: int, world: World) -> None:
+    def move(self, direction: Direction, world: World) -> None:
         """Move the player by dx, dy if the target tile is passable."""
-        new_x = self.pos.x + dx
-        new_y = self.pos.y + dy
+        dx, dy = direction.value
+        new_x = self.pos.x + dx * self.step_size
+        new_y = self.pos.y + dy * self.step_size
         if world.is_passable(new_x, new_y):
             self.pos.x = new_x
             self.pos.y = new_y
@@ -82,6 +85,7 @@ class Player(Entity, Living, Interactable):
             "id": self.id,
             "hp": self.hp,
             "inventory": self.inventory.slots,
+            "pos": self.pos,
         }
         return str(hud_info)
 

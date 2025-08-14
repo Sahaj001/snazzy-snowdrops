@@ -202,8 +202,19 @@ class RenderSystem:
                                     layer=tile.z,
                                 ),
                             )
+        # 2. Draw collision boxes
+        for box in tile_map.collision_boxes:
+            if camera.x <= box.x < camera.x + camera.screen_w and camera.y <= box.y < camera.y + camera.screen_h:
+                screen_x, screen_y = camera.world_to_screen(box.x, box.y)
+                draw_commands.append(
+                    DrawCmd(
+                        type=DrawCmdType.COLLISION,
+                        position=Pos(screen_x, screen_y, 0),
+                        collision_box=box,
+                    ),
+                )
 
-        # 2. Draw entities (players, NPCs, items, etc.)
+        # 3. Draw entities (players, NPCs, items, etc.)
         for entity in world.entities:
             # Get sprite for this entity type
             sprite_id = entity.sprite_id if hasattr(entity, "sprite_id") else entity.__class__.__name__.lower()

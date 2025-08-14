@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType
 from models import Pos, TileMap
+from models.direction import Direction
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
@@ -54,6 +55,16 @@ class World:
             ):
                 return False
 
+        # If all checks pass, the location is considered passable
+        for box in self.tile_map.collision_boxes:
+            # print all the conditions for debugging
+            print(
+                f"Checking collision box: {box.id} at ({box.x}, {box.y}) "
+                f"with size ({box.width}, {box.height}) for point ({x}, {y})",
+            )
+            if box.x <= x < box.x + box.width and box.y <= y < box.y + box.height:
+                return box.passable
+
         return True
 
     def update(self, dt: float, event_bus: EventBus) -> None:
@@ -98,10 +109,12 @@ class World:
         """Check if a click event intersects with any entity."""
         clickable_entities = []
         for entity in entities:
-            entity_tile_x, entity_tile_y = entity.pos.tile_position(
-                self.tile_map.tile_size,
-            )
-            if entity_tile_x == tile_x and entity_tile_y == tile_y:
+            entity_world_x, entity_world_y = entity.pos.x, entity.pos.y
+            # check if click happens between pos +- tile_size
+            if (
+                entity_world_x <= tile_x < entity_world_x + self.tile_map.tile_size
+                and entity_world_y <= tile_y < entity_world_y + self.tile_map.tile_size
+            ):
                 clickable_entities.append(entity)
 
         clickable_entities.sort(key=lambda e: e.pos.z, reverse=True)
@@ -111,17 +124,11 @@ class World:
         """Handle click events to interact with entities."""
         world_x, world_y = payload["position"]
 
-        # Convert world coordinates to tile coordinates
-        tile_x, tile_y = (
-            world_x // self.tile_map.tile_size,
-            world_y // self.tile_map.tile_size,
-        )
-
         player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
         entities_in_scope = self.find_near(player_pos, self.tile_map.tile_size)
         clicked_entity = self._check_if_click_on_entity(
-            tile_x,
-            tile_y,
+            world_x,
+            world_y,
             entities_in_scope,
         )
         print(f"Clicked entity: {clicked_entity}")
@@ -133,6 +140,7 @@ class World:
             )
 
     def _handle_key_event(self, payload: dict) -> None:
+        """Handle key events for player movement."""
         key = payload["key"]
 
         player = self.players[0] if self.players else None
@@ -140,13 +148,13 @@ class World:
             return
 
         if key == "ArrowUp":
-            player.move(0, -1 * self.tile_map.tile_size, self)
+            player.move(Direction.UP, self)
         elif key == "ArrowDown":
-            player.move(0, 1 * self.tile_map.tile_size, self)
+            player.move(Direction.DOWN, self)
         elif key == "ArrowLeft":
-            player.move(-1 * self.tile_map.tile_size, 0, self)
+            player.move(Direction.LEFT, self)
         elif key == "ArrowRight":
-            player.move(1 * self.tile_map.tile_size, 0, self)
+            player.move(Direction.RIGHT, self)
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""

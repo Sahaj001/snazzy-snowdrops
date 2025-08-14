@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
     from models.draw_cmd import DrawCmd
     from models.position import Pos
-    from models.tile import TilesRegistry
+    from models.tile import ObjectTile, TilesRegistry
 
 ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape"]
 
@@ -72,6 +72,8 @@ class ViewBridge:
                 )
             elif cmd.type == DrawCmdType.TILE:
                 self.tiles_registry.draw_tile(self.canvas, cmd.tile_gid, cmd.position)
+            elif cmd.type == DrawCmdType.COLLISION:
+                self.draw_collision_box(cmd.position, cmd.collision_box)
             elif cmd.type == DrawCmdType.TEXT:
                 self.draw_text(
                     cmd.text,
@@ -83,6 +85,16 @@ class ViewBridge:
                 cmd.status_bar.draw(self.canvas)
 
         self.tiles_registry.static_count += 1
+
+    def draw_collision_box(self, position: Pos, collision: ObjectTile) -> None:
+        """Draw a semi-transparent rectangle for collision boxes."""
+        self.ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
+        self.ctx.fillRect(
+            position.x,
+            position.y,
+            collision.width,
+            collision.height,
+        )
 
     def draw_text(
         self,
