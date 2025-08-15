@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from game.entities.player import Player
 
 
-
 class World:
     """The game world, containing all entities and the tile map."""
 

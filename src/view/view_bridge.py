@@ -16,11 +16,24 @@ if TYPE_CHECKING:
     from models.position import Pos
     from models.tile import TilesRegistry
 
-ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
-                   "W", "A", "S", "D",
-                   "w", "a", "s", "d",
-                   "Enter", "Escape",
-                   "e", "E", ]
+ALLOWED_INPUTS = [
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "W",
+    "A",
+    "S",
+    "D",
+    "w",
+    "a",
+    "s",
+    "d",
+    "Enter",
+    "Escape",
+    "e",
+    "E",
+]
 
 
 class ViewBridge:

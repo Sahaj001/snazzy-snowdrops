@@ -31,7 +31,9 @@ class Fruit(Entity, Interactable):
                 event_type=EventType.ASK_DIALOG,
                 payload={
                     "dialog": f"{actor.id} wants to pick up {self.id}.",
-                    "callback": lambda answer: (self.pick_up(actor, event_bus) if answer == "Yes" else None),
+                    "callback": lambda answer: (
+                        self.pick_up(actor, event_bus) if answer == "Yes" else None
+                    ),
                     "options": ["Yes", "No"],
                     "selected_index": 0,
                 },
