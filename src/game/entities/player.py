@@ -1,15 +1,30 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from engine.event_bus import EventBus, EventType, GameEvent
 from engine.interfaces import Behaviour, Interactable, Living
 from game.entities.entity import Entity
 from game.inventory import Inventory
+from models.direction import Direction
 
 if TYPE_CHECKING:
     from game.world import World
     from models.position import Pos
+    from models.sprite import SpriteRegistry
+
+
+class PlayerState(Enum):
+    """Enum representing the player's state."""
+
+    IDLE = "idle"
+    WALKING_UP = "walking_up"
+    WALKING_DOWN = "walking_down"
+    WALKING_LEFT = "walking_left"
+    WALKING_RIGHT = "walking_right"
+    INTERACTING = "interacting"
+    DEAD = "dead"
 
 
 class Player(Entity, Living, Interactable):
@@ -21,38 +36,70 @@ class Player(Entity, Living, Interactable):
         pos: Pos,
         behaviour: Behaviour,
         hp: int = 100,
-        max_hp: int = 100,
         intelligence: int = 0,
-        max_intelligence: int = 100,
         fatigue: int = 0,
-        max_fatigue: int = 100,
-        speed: float = 1.0,
+        sprite_registry: SpriteRegistry | None = None,
     ) -> None:
-        super().__init__(entity_id, pos, behaviour)
+        super().__init__(entity_id, pos, behaviour, sprite_registry)
         self.inventory = Inventory()
-        self.speed = speed
         self.hp = hp
-        self.max_hp = max_hp
         self.intelligence = intelligence
-        self.max_intelligence = max_intelligence
-        self.fatigue = fatigue
-        self.max_fatigue = max_fatigue
 
-    def move(self, dx: int, dy: int, world: World) -> None:
+        self.max_hp = 100
+        self.fatigue = fatigue
+        self.max_intelligence = 100
+        self.max_fatigue = 100
+        self.step_size = 10  # in pixel
+        self.state = PlayerState.IDLE
+
+    def move(self, key: str, world: World) -> None:
         """Move the player by dx, dy if the target tile is passable."""
-        new_x = self.pos.x + dx
-        new_y = self.pos.y + dy
+        direction = Direction.from_key(key)
+        if not direction:
+            self.state = PlayerState.IDLE
+            return
+
+        dx, dy = direction.value
+        new_x = self.pos.x + dx * self.step_size
+        new_y = self.pos.y + dy * self.step_size
         if world.is_passable(new_x, new_y):
             self.pos.x = new_x
             self.pos.y = new_y
+            if direction.value == Direction.LEFT.value:
+                self.state = PlayerState.WALKING_LEFT
+            elif direction.value == Direction.RIGHT.value:
+                self.state = PlayerState.WALKING_RIGHT
+            elif direction.value == Direction.UP.value:
+                self.state = PlayerState.WALKING_UP
+            elif direction.value == Direction.DOWN.value:
+                self.state = PlayerState.WALKING_DOWN
+        else:
+            self.state = PlayerState.IDLE
 
     def update(
         self,
-        *args: int,
         **kwargs: int,
     ) -> None:
         """Update the player's state."""
         # Player-specific update logic can go here
+        events = kwargs.get("events", [])
+        self.state = PlayerState.IDLE  # Reset state to idle by default
+        for event in events:
+            if event.event_type == EventType.PLAYER_MOVED:
+                key = event.payload.get("key")
+                if key:
+                    self.move(key, kwargs.get("world"))
+                event.consume()
+
+        self.update_frame_idx()
+
+    def update_frame_idx(self) -> None:
+        """Update player sprite frame idx."""
+        sprite = self.sprite_registry.get(self.state.value)
+        if sprite and sprite.is_animated():
+            self.frame_idx = (self.frame_idx + 1) % sprite.frame_count
+        else:
+            self.frame_idx = 0
 
     def is_alive(self) -> bool:
         """Check if the player is alive based on HP."""
@@ -82,6 +129,8 @@ class Player(Entity, Living, Interactable):
             "id": self.id,
             "hp": self.hp,
             "inventory": self.inventory.slots,
+            "pos": self.pos,
+            "state": self.state,
         }
         return str(hud_info)
 

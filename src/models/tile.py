@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from js import HTMLCanvasElement, Image
 
-from models.position import Pos
+from models import DrawCmd
 
 
 @dataclass
@@ -24,7 +24,6 @@ class TilesRegistry:
     """Registry for managing multiple tilesets."""
 
     tilesets: list[Tileset] = None
-    static_count = 0
 
     @classmethod
     def load_from_tiled(cls, directory: str, tiled: dict) -> "TilesRegistry":
@@ -46,10 +45,15 @@ class TilesRegistry:
 
         return cls(tilesets=result)
 
-    def draw_tile(self, canvas: HTMLCanvasElement, gid: int, position: Pos) -> None:
+    def draw_tile(
+        self,
+        canvas: HTMLCanvasElement,
+        cmd: DrawCmd,
+    ) -> None:
         """Draw a tile at the specified position."""
-        if self.static_count == 0:
-            print(f"Drawing tile with gid {gid} at position: {position}")
+        gid = cmd.tile_gid
+        position = cmd.position
+        scale = cmd.scale
         for tileset in self.tilesets:
             if tileset.firstgid <= gid < tileset.firstgid + tileset.tilecount:
                 tile_index = gid - tileset.firstgid
@@ -65,8 +69,8 @@ class TilesRegistry:
                     tileset.tileheight,
                     position.x,
                     position.y,
-                    tileset.tilewidth,
-                    tileset.tileheight,
+                    tileset.tilewidth * scale,
+                    tileset.tileheight * scale,
                 )
                 break
 
@@ -75,9 +79,20 @@ class TilesRegistry:
 class Tile:
     """Represents a single tile in the world."""
 
-    sprite_id: str = ""  # backward compatibility
     gid: int = 0  # Global ID of the tile
     z: int = 0
+    passable: bool = False
+
+
+@dataclass
+class ObjectTile:
+    """Represents an object tile in the world."""
+
+    id: str
+    x: int
+    y: int
+    width: int
+    height: int
     passable: bool = False
 
 
@@ -89,6 +104,7 @@ class TileMap:
         self.height = height
         self.tile_size = tile_size
         self.tiles: dict[tuple[int, int], list[Tile]] = defaultdict(list)
+        self.collision_boxes: list[ObjectTile] = []
 
     def get(self, x: int, y: int) -> list[Tile] | None:
         """Get the tile at given coordinates."""
@@ -103,6 +119,10 @@ class TileMap:
         """Check if a tile can be walked on."""
         tile = self.get(x, y)
         return tile is not None and all(t.passable for t in tile)
+
+    def add_collision_box(self, obj: ObjectTile) -> None:
+        """Add a collision box to the tile map."""
+        self.collision_boxes.append(obj)
 
     @classmethod
     def load_from_tiled(cls, tiled: dict) -> "TileMap":
@@ -121,4 +141,16 @@ class TileMap:
                         y = idx // tile_map.width
                         tile = Tile(gid=gid, z=0, passable=True)
                         tile_map.set(x, y, tile)
+            elif layer["type"] == "objectgroup":
+                for obj in layer["objects"]:
+                    tile_map.add_collision_box(
+                        ObjectTile(
+                            id=obj["id"],
+                            x=obj["x"],
+                            y=obj["y"],
+                            width=obj["width"],
+                            height=obj["height"],
+                            passable=obj.get("properties", {}).get("passable", False),
+                        ),
+                    )
         return tile_map

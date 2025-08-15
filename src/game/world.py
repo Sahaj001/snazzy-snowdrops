@@ -54,6 +54,26 @@ class World:
             ):
                 return False
 
+        # If all checks pass, the location is considered passable
+        for box in self.tile_map.collision_boxes:
+            # player has width and height
+            # check rectangle collision
+            player_width, player_height = (
+                self.tile_map.tile_size,
+                self.tile_map.tile_size,
+            )
+
+            def rects_overlap(r1: tuple, r2: tuple) -> bool:
+                x1, y1, w1, h1 = r1
+                x2, y2, w2, h2 = r2
+                return x1 < x2 + w2 and x1 + w1 > x2 and y1 < y2 + h2 and y1 + h1 > y2
+
+            if rects_overlap(
+                (box.x, box.y, box.width, box.height),
+                (x, y, player_width, player_height),
+            ):
+                return box.passable
+
         return True
 
     def update(self, dt: float, event_bus: EventBus) -> None:
@@ -61,33 +81,11 @@ class World:
         events = event_bus.get_events()
 
         for event in events:
-            if event.event_type == EventType.INPUT:
-                self._handle_input(event.payload, event_bus)
+            if event.event_type == EventType.MOUSE_CLICK:
+                self._handle_click_event(event.payload, event_bus)
                 event.consume()
-            elif event.event_type == EventType.FRUIT_PICKED:
-                self._handle_fruit_picked(event.payload)
-                event.consume()
-
         for e in self.entities:
-            e.update(self, dt)
-
-    def _handle_fruit_picked(self, payload: dict) -> None:
-        """Handle fruit picked events."""
-        fruit_id = payload.get("fruit_id")
-        fruit = self.get_entity_by_id(fruit_id)
-        if fruit:
-            self.remove_entity(fruit)
-
-    def _handle_input(self, payload: dict, event_bus: EventBus) -> None:
-        """Handle input events like clicks or key presses."""
-        print("_handle_input payload", payload)
-        etype = payload["type"]
-        if etype == "key":
-            self._handle_key_event(payload)
-        elif etype == "click":
-            self._handle_click_event(payload, event_bus)
-        else:
-            print(f"Unhandled input event type: {etype}")
+            e.update(time_delta=dt, events=events, world=self)
 
     def _check_if_click_on_entity(
         self,
@@ -98,10 +96,12 @@ class World:
         """Check if a click event intersects with any entity."""
         clickable_entities = []
         for entity in entities:
-            entity_tile_x, entity_tile_y = entity.pos.tile_position(
-                self.tile_map.tile_size,
-            )
-            if entity_tile_x == tile_x and entity_tile_y == tile_y:
+            entity_world_x, entity_world_y = entity.pos.x, entity.pos.y
+            # check if click happens between pos +- tile_size
+            if (
+                entity_world_x <= tile_x < entity_world_x + self.tile_map.tile_size
+                and entity_world_y <= tile_y < entity_world_y + self.tile_map.tile_size
+            ):
                 clickable_entities.append(entity)
 
         clickable_entities.sort(key=lambda e: e.pos.z, reverse=True)
@@ -111,17 +111,11 @@ class World:
         """Handle click events to interact with entities."""
         world_x, world_y = payload["position"]
 
-        # Convert world coordinates to tile coordinates
-        tile_x, tile_y = (
-            world_x // self.tile_map.tile_size,
-            world_y // self.tile_map.tile_size,
-        )
-
         player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
         entities_in_scope = self.find_near(player_pos, self.tile_map.tile_size)
         clicked_entity = self._check_if_click_on_entity(
-            tile_x,
-            tile_y,
+            world_x,
+            world_y,
             entities_in_scope,
         )
         print(f"Clicked entity: {clicked_entity}")
@@ -131,22 +125,6 @@ class World:
                 self.players[0] if self.players else None,
                 event_bus,
             )
-
-    def _handle_key_event(self, payload: dict) -> None:
-        key = payload["key"]
-
-        player = self.players[0] if self.players else None
-        if not player:
-            return
-
-        if key == "ArrowUp":
-            player.move(0, -1 * self.tile_map.tile_size, self)
-        elif key == "ArrowDown":
-            player.move(0, 1 * self.tile_map.tile_size, self)
-        elif key == "ArrowLeft":
-            player.move(-1 * self.tile_map.tile_size, 0, self)
-        elif key == "ArrowRight":
-            player.move(1 * self.tile_map.tile_size, 0, self)
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""

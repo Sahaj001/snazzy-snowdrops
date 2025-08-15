@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
@@ -8,6 +9,12 @@ from game.entities.entity import Entity
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
+    from models.sprite import SpriteRegistry
+
+
+class FruitState(Enum):
+    FRESH = "fresh"
+    PICKED = "picked"
 
 
 class Fruit(Entity, Interactable):
@@ -18,14 +25,16 @@ class Fruit(Entity, Interactable):
         fruit_id: str,
         pos: Pos,
         behaviour: Behaviour,
-        max_hp: int = 5,
+        sprite_registry: SpriteRegistry | None = None,
     ) -> None:
-        super().__init__(fruit_id, pos, behaviour)
-        self.max_hp = max_hp
+        super().__init__(fruit_id, pos, behaviour, sprite_registry)
+        self.max_hp = 5
+        self.state = FruitState.FRESH
 
     def interact(self, actor: Entity, event_bus: EventBus) -> None:
         """Allow an actor to interact with the fruit, e.g., pick it up."""
-        # ask the actor to pick up the fruit
+        if self.state == FruitState.PICKED:
+            return
         event_bus.post(
             GameEvent(
                 event_type=EventType.ASK_DIALOG,
@@ -54,10 +63,26 @@ class Fruit(Entity, Interactable):
 
     def update(
         self,
-        *args: int,
         **kwargs: int,
     ) -> None:
         """Update the fruit's state."""
+        events = kwargs.get("events", [])
+        for event in events:
+            if event.event_type == EventType.FRUIT_PICKED:
+                fruit_id = event.payload.get("fruit_id")
+                if fruit_id == self.id:
+                    self.state = FruitState.PICKED
+                    event.consume()
+
+        self.update_frame_idx()
+
+    def update_frame_idx(self) -> None:
+        """Update player sprite frame idx."""
+        sprite = self.sprite_registry.get(self.state.value)
+        if sprite and sprite.is_animated():
+            self.frame_idx = (self.frame_idx + 1) % sprite.frame_count
+        else:
+            self.frame_idx = 0
 
 
 class FruitBehaviour(Behaviour):

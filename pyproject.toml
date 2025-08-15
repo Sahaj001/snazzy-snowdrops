@@ -39,6 +39,7 @@ fix = true
 # The directory containing the source code. If you choose a different project layout
 # you will need to update this value.
 src = ["src"]
+exclude = ['assets']
 
 [tool.ruff.lint]
 # Enable all linting rules.
@@ -55,6 +56,7 @@ ignore = [
     "PLR0913",
     "D105",
     "D106",
+    "C901",
     "D107",
     "ANN202",
     # Docstring whitespace.
