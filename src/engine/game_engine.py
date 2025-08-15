@@ -64,11 +64,7 @@ class GameEngine:
                 if input_event.key == "Escape":
                     PauseMenu().make_visible()
                     PauseState.pause()
-                event_type = (
-                    EventType.DIALOG_INPUT
-                    if self.renderer.active_dialog
-                    else EventType.PLAYER_MOVED
-                )
+                event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.PLAYER_MOVED
                 self.event_bus.post(
                     GameEvent(
                         event_type=event_type,
