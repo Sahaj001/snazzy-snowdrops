@@ -143,10 +143,7 @@ class RenderSystem:
 
         # 2. Draw collision boxes
         for box in tile_map.collision_boxes:
-            if (
-                camera.x <= box.x < camera.x + camera.screen_w
-                and camera.y <= box.y < camera.y + camera.screen_h
-            ):
+            if camera.x <= box.x < camera.x + camera.screen_w and camera.y <= box.y < camera.y + camera.screen_h:
                 screen_x, screen_y = camera.world_to_screen(box.x, box.y)
                 draw_commands.append(
                     DrawCmd(
@@ -160,11 +157,7 @@ class RenderSystem:
         # 3. Draw entities (players, NPCs, items, etc.)
         for entity in world.entities:
             # Get sprite for this entity type
-            sprite = (
-                entity.sprite_registry.get(entity.state.value)
-                if hasattr(entity, "sprite_registry")
-                else None
-            )
+            sprite = entity.sprite_registry.get(entity.state.value) if hasattr(entity, "sprite_registry") else None
             if not sprite:
                 print(f"Sprite not found for entity: {entity} {entity.state}")
                 continue
@@ -186,9 +179,7 @@ class RenderSystem:
                         position=Pos(screen_x, screen_y, entity.pos.z),
                         layer=entity.pos.z,
                         scale=self.camera.zoom,
-                        frame_idx=(
-                            entity.frame_idx if hasattr(entity, "frame_idx") else 0
-                        ),
+                        frame_idx=(entity.frame_idx if hasattr(entity, "frame_idx") else 0),
                     ),
                 )
 
