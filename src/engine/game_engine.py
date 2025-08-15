@@ -56,11 +56,7 @@ class GameEngine:
 
                 self.sound_sys.play_sfx("btn-click")
             elif input_event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
-                event_type = (
-                    EventType.DIALOG_INPUT
-                    if self.renderer.active_dialog
-                    else EventType.PLAYER_MOVED
-                )
+                event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.PLAYER_MOVED
                 if input_event.key == "Escape":
                     PauseMenu().make_visible()
                     PauseState.pause()

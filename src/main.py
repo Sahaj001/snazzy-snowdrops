@@ -13,11 +13,11 @@ from engine import (
     RenderSystem,
     SoundSystem,
 )
-from models import Pos, SpriteRegistry, TileMap, TilesRegistry
 from engine.state import DelayState, PauseState
 from game import Fruit, Player, World
 from menu.main_menu import MainMenu
 from menu.settings_menu import SettingsMenu
+from models import Pos, SpriteRegistry, TileMap, TilesRegistry
 from view import ViewBridge
 
 # ==== INITIAL SETUP ====
@@ -129,11 +129,7 @@ def on_resize(engine: GameEngine) -> None:
 
 
 # ==== GAME LOOP ====
-def tick_frame(
-    engine: GameEngine,
-    timestamp: float | None = None,
-    lf_timestamp: int = 0,
-) -> None:
+def tick_frame(engine, timestamp, lf_timestamp=0) -> None:  # noqa: ANN001
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
