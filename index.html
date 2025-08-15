@@ -1,34 +1,93 @@
 <!DOCTYPE html>
 <html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Pyodide Game Test</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                background: #222;
+                overflow: hidden;
+                color: #f7f7f7;
+                font-family: 'Perfect DOS VGA 437', 'Courier New', Courier, monospace;
+            }
 
-<head>
-    <meta charset="UTF-8">
-    <title>Pyodide Game Test</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #222;
-            overflow: hidden;
-        }
+            canvas {
+                display: block;
+                width: 100vw;
+                height: 100vh;
+                background: transparent;
+            }
 
-        canvas {
-            display: block;
-            width: 100vw;
-            height: 100vh;
-            background: transparent;
-        }
-    </style>
-</head>
+            .menu {
+                display: none;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 16px;
+                z-index: 1;
+                background-color: rgba(0, 0, 0, 0.7);
+            }
 
-<body>
-    <canvas id="gameCanvas"></canvas>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
-    <script src="js/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.0/umd/index.js"></script>
-    <script>
+            .menu.visible {
+                display: flex;
+            }
 
-    </script>
-</body>
+            .slider {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
 
+            input[type='range'] {
+                accent-color: red;
+                width: 275px;
+            }
+
+            label {
+                font-size: 1.3em;
+                display: block;
+                transform: translateX(-0.3em);
+            }
+        </style>
+    </head>
+
+    <body>
+        <canvas id="gameCanvas"></canvas>
+        <div id="main-menu" class="menu">
+            <button class="continue">Continue</button>
+            <button class="new-game">New Game</button>
+            <button class="settings">Settings</button>
+        </div>
+        <div id="pause-menu" class="menu">
+            <button class="continue">Continue</button>
+            <button class="main-menu-btn">Main Menu</button>
+            <button class="settings">Settings</button>
+        </div>
+        <div id="settings-menu" class="menu">
+            <h1>Volume Settings:</h1>
+            <div class="silder">
+                <label for="master">Master:</label>
+                <input type="range" id="master" min="0" max="100" />
+            </div>
+            <div class="silder">
+                <label for="sound-effects">Sound Effects:</label>
+                <input type="range" id="sound-effects" min="0" max="100" />
+            </div>
+            <div class="silder">
+                <label for="bg-music">Background Music:</label>
+                <input type="range" id="bg-music" min="0" max="100" />
+            </div>
+            <button class="done">Done</button>
+        </div>
+        <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+        <script src="js/index.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.0/umd/index.js"></script>
+    </body>
 </html>
