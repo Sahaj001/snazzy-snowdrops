@@ -1,0 +1,35 @@
+{
+    "name": "player",
+    "state": {
+        "idle": {
+            "image_path": "assets/sprites/player.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 8
+        },
+        "walking_left": {
+            "image_path": "assets/sprites/player_walk_left.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 6
+        },
+        "walking_right": {
+            "image_path": "assets/sprites/player_walk_right.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 6
+        },
+        "walking_up": {
+            "image_path": "assets/sprites/player_walk_up.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 4
+        },
+        "walking_down": {
+            "image_path": "assets/sprites/player_walk_down.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 4
+        }
+    }
+}

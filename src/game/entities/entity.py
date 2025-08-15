@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from engine.interfaces import Behaviour, Object
 from models.position import Pos
+from models.sprite import SpriteRegistry
 
 
 class Entity(Object, ABC):
@@ -12,11 +13,14 @@ class Entity(Object, ABC):
         entity_id: str,
         pos: Pos,
         behaviour: Behaviour | None = None,
+        sprite_registry: SpriteRegistry = None,
     ) -> None:
         """Initialize the entity with an ID and position."""
         self.id = entity_id
         self.pos = pos
         self.behaviour = behaviour
+        self.sprite_registry = sprite_registry
+        self.frame_idx = 0
 
     @abstractmethod
     def update(self, *args: int, **kwargs: int) -> None:

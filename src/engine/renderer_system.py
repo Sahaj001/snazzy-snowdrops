@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from engine.event_bus import EventType, GameEvent
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
-from models.sprite import Sprite, SpriteType
 from ui import DialogBox, StatusBar
 
 if TYPE_CHECKING:
@@ -15,62 +14,14 @@ if TYPE_CHECKING:
     from view.view_bridge import ViewBridge
 
 
-class SpriteRegistry:
-    """Stores and retrieves sprite data."""
-
-    def __init__(self) -> None:
-        self._sprites: dict[str, Sprite] = {}
-
-    def get(self, sprite_id: str) -> Sprite:
-        """Retrieve a sprite by its ID."""
-        return self._sprites.get(sprite_id, None)
-
-    def load_from_json(self, _path: str) -> None:
-        """Load sprite metadata from a JSON file."""
-        # mock loading from json with some basic sprites like player and path
-        sprite_size = 32
-        self._sprites["player"] = Sprite(
-            type=SpriteType.SPRITE,
-            image_path="assets/sprites/player.png",
-            size=(sprite_size, sprite_size),
-        )
-        self._sprites["horizontal_wall"] = Sprite(
-            type=SpriteType.TILE,
-            image_path="assets/sprites/wall.png",
-            size=(sprite_size, sprite_size),
-        )
-        self._sprites["vertical_wall"] = Sprite(
-            type=SpriteType.TILE,
-            image_path="assets/sprites/wall.png",
-            size=(sprite_size, sprite_size),
-        )
-        self._sprites["fruit"] = Sprite(
-            type=SpriteType.EDIBLE,
-            image_path="assets/sprites/fruit.png",
-            size=(sprite_size, sprite_size),
-        )
-        self._sprites["grass"] = Sprite(
-            type=SpriteType.TILE,
-            image_path="assets/sprites/path.png",
-            size=(sprite_size, sprite_size),
-        )
-        self._sprites["tree"] = Sprite(
-            type=SpriteType.TILE,
-            image_path="assets/sprites/tree.png",
-            size=(sprite_size, sprite_size),
-        )
-
-
 class RenderSystem:
     """Builds a draw queue and sends it to the view."""
 
     def __init__(
         self,
-        sprites: SpriteRegistry,
         view_bridge: ViewBridge,
         camera: Camera,
     ) -> None:
-        self.sprites = sprites
         self.view_bridge = view_bridge
         self.camera = camera
         self.ui_overlays = {}  # overlay_id / sprite_id -> expiry_time
@@ -113,6 +64,7 @@ class RenderSystem:
                         type=DrawCmdType.TEXT,
                         text=player.get_hud_info(),
                         position=hud_position,
+                        scale=self.camera.zoom,
                     ),
                 )
 
@@ -127,6 +79,7 @@ class RenderSystem:
                     type=DrawCmdType.DIALOG,
                     dialog=self.active_dialog,
                     position=dialog_position,
+                    scale=self.camera.zoom,
                 ),
             )
 
@@ -138,6 +91,7 @@ class RenderSystem:
                     **world.get_current_player().get_status_info(),
                     ticks=now,
                 ),
+                scale=self.camera.zoom,
             ),
         )
 
@@ -155,15 +109,15 @@ class RenderSystem:
         tile_map = world.tile_map
         tile_size_pixels = tile_map.tile_size  # pixels
 
-        start_tile_x = max(camera.x // tile_size_pixels, 0)
-        start_tile_y = max(camera.y // tile_size_pixels, 0)
+        start_tile_x = max(int(camera.x // tile_size_pixels), 0)
+        start_tile_y = max(int(camera.y // tile_size_pixels), 0)
 
         end_tile_x = min(
-            (camera.x + camera.screen_w) // tile_size_pixels,
+            int((camera.x + camera.screen_w / camera.zoom) // tile_size_pixels),
             tile_map.width,
         )
         end_tile_y = min(
-            (camera.y + camera.screen_h) // tile_size_pixels,
+            int((camera.y + camera.screen_h / camera.zoom) // tile_size_pixels),
             tile_map.height,
         )
 
@@ -172,67 +126,62 @@ class RenderSystem:
                 tiles = tile_map.get(x, y)
                 if tiles:
                     for tile in tiles:
-                        # check if tile has sprite id
-                        sprite = self.sprites.get(tile.sprite_id)
-
                         world_x = x * tile_size_pixels
                         world_y = y * tile_size_pixels
 
                         screen_x, screen_y = camera.world_to_screen(world_x, world_y)
 
-                        rotation = 90 if tile.sprite_id == "horizontal_wall" else 0
+                        draw_commands.append(
+                            DrawCmd(
+                                type=DrawCmdType.TILE,
+                                tile_gid=tile.gid,
+                                position=Pos(screen_x, screen_y, tile.z),
+                                layer=tile.z,
+                                scale=self.camera.zoom,
+                            ),
+                        )
 
-                        # Create draw command
-                        if sprite:  # for backward compatibility with sprite_id
-                            draw_commands.append(
-                                DrawCmd(
-                                    type=DrawCmdType.SPRITE,
-                                    sprite=sprite,
-                                    position=Pos(screen_x, screen_y, tile.z),
-                                    layer=tile.z,
-                                    rotation=rotation,
-                                ),
-                            )
-                        else:  # for tiled tiles without sprite_id
-                            draw_commands.append(
-                                DrawCmd(
-                                    type=DrawCmdType.TILE,
-                                    tile_gid=tile.gid,
-                                    position=Pos(screen_x, screen_y, tile.z),
-                                    layer=tile.z,
-                                ),
-                            )
+        # 2. Draw collision boxes
+        for box in tile_map.collision_boxes:
+            if camera.x <= box.x < camera.x + camera.screen_w and camera.y <= box.y < camera.y + camera.screen_h:
+                screen_x, screen_y = camera.world_to_screen(box.x, box.y)
+                draw_commands.append(
+                    DrawCmd(
+                        type=DrawCmdType.COLLISION,
+                        position=Pos(screen_x, screen_y, 0),
+                        collision_box=box,
+                        scale=self.camera.zoom,
+                    ),
+                )
 
-        # 2. Draw entities (players, NPCs, items, etc.)
+        # 3. Draw entities (players, NPCs, items, etc.)
         for entity in world.entities:
             # Get sprite for this entity type
-            sprite_id = entity.sprite_id if hasattr(entity, "sprite_id") else entity.__class__.__name__.lower()
-
-            try:
-                sprite = self.sprites.get(sprite_id)
-
-                world_pos_x, world_pos_y = entity.pos.x, entity.pos.y
-                if (
-                    camera.x <= world_pos_x < camera.x + camera.screen_w
-                    and camera.y <= world_pos_y < camera.y + camera.screen_h
-                ):
-                    screen_x, screen_y = camera.world_to_screen(
-                        world_pos_x,
-                        world_pos_y,
-                    )
-
-                    draw_commands.append(
-                        DrawCmd(
-                            type=DrawCmdType.SPRITE,
-                            sprite=sprite,
-                            position=Pos(screen_x, screen_y, entity.pos.z),
-                            layer=entity.pos.z,
-                        ),
-                    )
-            except KeyError:
-                # Skip entities without sprites
-                print(f"Warning: No sprite found for entity type '{sprite_id}'")
+            sprite = entity.sprite_registry.get(entity.state.value) if hasattr(entity, "sprite_registry") else None
+            if not sprite:
+                print(f"Sprite not found for entity: {entity} {entity.state}")
                 continue
+
+            world_pos_x, world_pos_y = entity.pos.x, entity.pos.y
+            if (
+                camera.x <= world_pos_x < camera.x + camera.screen_w
+                and camera.y <= world_pos_y < camera.y + camera.screen_h
+            ):
+                screen_x, screen_y = camera.world_to_screen(
+                    world_pos_x,
+                    world_pos_y,
+                )
+
+                draw_commands.append(
+                    DrawCmd(
+                        type=DrawCmdType.SPRITE,
+                        sprite=sprite,
+                        position=Pos(screen_x, screen_y, entity.pos.z),
+                        layer=entity.pos.z,
+                        scale=self.camera.zoom,
+                        frame_idx=(entity.frame_idx if hasattr(entity, "frame_idx") else 0),
+                    ),
+                )
 
         # Sort by layer for proper rendering order (lower layers first)
         draw_commands.sort(key=lambda cmd: cmd.layer)
