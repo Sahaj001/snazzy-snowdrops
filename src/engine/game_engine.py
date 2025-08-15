@@ -72,7 +72,7 @@ class GameEngine:
 
     def render(self, now: float) -> None:
         """Render the current game state."""
-        self.renderer.update(now, self.event_bus)
+        self.renderer.update(now, self.event_bus, self.world)
         cmds = self.renderer.build_draw_queue(self.world, self.renderer.camera, now)
         self.renderer.flush_to_view(cmds)
 

@@ -26,6 +26,7 @@ class RenderSystem:
         self.camera = camera
         self.ui_overlays = {}  # overlay_id / sprite_id -> expiry_time
         self.active_dialog: DialogBox | None = None
+        self.status_bar = StatusBar()
 
     def build_draw_queue(
         self,
@@ -82,18 +83,6 @@ class RenderSystem:
                     scale=self.camera.zoom,
                 ),
             )
-
-        draw_commands.append(
-            DrawCmd(
-                type=DrawCmdType.STATUS_BAR,
-                position=None,  # Position is handled by the StatusBar class
-                status_bar=StatusBar(
-                    **world.get_current_player().get_status_info(),
-                    ticks=now,
-                ),
-                scale=self.camera.zoom,
-            ),
-        )
 
         return draw_commands
 
@@ -196,7 +185,7 @@ class RenderSystem:
         """Add a UI overlay that will expire after a certain time."""
         self.ui_overlays[overlay_id] = expiry_time
 
-    def update(self, now: float, event_bus: EventBus) -> None:
+    def update(self, now: float, event_bus: EventBus, world: World) -> None:
         """Update the renderer state, e.g., handle UI overlays."""
         expired = [k for k, expiry in self.ui_overlays.items() if now > expiry]
         for k in expired:
@@ -211,6 +200,25 @@ class RenderSystem:
                 self._handle_ask_dialog_event(event)
             elif event.event_type == EventType.DIALOG_INPUT:
                 self._handle_dialog_input_event(event)
+
+        # update ui components like status bar
+        if self.status_bar:
+            player = world.get_current_player()
+            if player:
+                self.status_bar.update(
+                    hp=player.hp,
+                    intelligence=player.intelligence,
+                    fatigue=player.fatigue,
+                    ticks=now,
+                )
+            else:
+                self.status_bar.update(
+                    hp=100,
+                    intelligence=0,
+                    fatigue=0,
+                    ticks=now,
+                )
+            self.status_bar.update_ui()
 
     def _handle_ui_update_event(self, event: GameEvent, now: float) -> None:
         """Handle UI update events."""
