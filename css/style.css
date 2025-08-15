@@ -1,0 +1,138 @@
+body {
+    margin: 0;
+    padding: 0;
+    background: #222;
+    overflow: hidden;
+    color: #f7f7f7;
+    font-family: 'Perfect DOS VGA 437', 'Courier New', Courier, monospace;
+}
+
+canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    background: transparent;
+}
+
+.menu {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.menu.visible {
+    display: flex;
+}
+
+.slider {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+input[type='range'] {
+    accent-color: red;
+    width: 275px;
+}
+
+label {
+    font-size: 1.3em;
+    display: block;
+    transform: translateX(-0.3em);
+}
+
+
+/* ----- HUD layout ----- */
+#hud {
+    position: fixed;
+    /* overlays your canvas */
+    top: 12px;
+    left: 12px;
+    z-index: 9999;
+    width: 220px;
+    /* small */
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(20, 20, 28, .62);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .25);
+    font: 500 12px/1.2 system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    color: #f3f4f6;
+    pointer-events: none;
+    /* won’t block canvas input */
+}
+
+#hud .bar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-row-gap: 4px;
+    row-gap: 4px;
+    margin-bottom: 8px;
+}
+
+#hud .bar:last-child {
+    margin-bottom: 0;
+}
+
+#hud .label {
+    opacity: .8;
+    grid-column: 1 / 2;
+}
+
+#hud .val {
+    opacity: .85;
+    font-variant-numeric: tabular-nums;
+    grid-column: 2 / 3;
+}
+
+/* Track + fill */
+#hud .track {
+    grid-column: 1 / 3;
+    position: relative;
+    height: 8px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(0, 0, 0, .12));
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+#hud .fill {
+    position: absolute;
+    inset: 0;
+    width: calc(var(--val, 0) * 1%);
+    /* set via inline style --val:[0-100] */
+    border-radius: 999px;
+    transition: width .25s ease;
+}
+
+/* Colors per stat */
+.fill--health {
+    background: linear-gradient(90deg, #ff4455, #ff8844);
+}
+
+.fill--intel {
+    background: linear-gradient(90deg, #3aa0ff, #7cc7ff);
+}
+
+.fill--fatigue {
+    /* Fatigue reads better inverted (low = long green). If you prefer 1:1, remove (100-). */
+    width: calc((100 - var(--val, 0)) * 1%);
+    background: linear-gradient(90deg, #7ad66a, #c3f27e);
+}
+
+/* Compact on very small screens */
+@media (max-width:480px) {
+    #hud {
+        width: 180px;
+        padding: 8px;
+    }
+}

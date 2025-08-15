@@ -7,6 +7,12 @@ async function loadProject(pyodide) {
     console.log('Project loaded...');
 }
 
+async function loadStatusBar() {
+    const response = await fetch('src/ui/components/statusbar.html');
+    const html = await response.text();
+    document.getElementById('hud-container').innerHTML = html;
+}
+
 async function main() {
     console.log('Loading Pyodide...');
     const pyodide = await loadPyodide();
@@ -22,6 +28,8 @@ async function main() {
         import main
         await main.start()
     `);
+
+    await loadStatusBar();
 
 }
 

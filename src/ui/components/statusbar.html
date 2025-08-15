@@ -1,0 +1,26 @@
+<!-- HUD: place anywhere in the page (after your <canvas> is fine) -->
+<div id="hud" role="region" aria-label="Player status">
+    <div class="bar" data-name="Health" style="--val: 85">
+        <span class="label">Health</span>
+        <span class="track" aria-valuemin="0" aria-valuemax="100" aria-valuenow="85" role="progressbar">
+            <span class="fill fill--health"></span>
+        </span>
+        <span class="val">85%</span>
+    </div>
+
+    <div class="bar" data-name="Intelligence" style="--val: 62">
+        <span class="label">Intelligence</span>
+        <span class="track" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" role="progressbar">
+            <span class="fill fill--intel"></span>
+        </span>
+        <span class="val">62%</span>
+    </div>
+
+    <div class="bar" data-name="Fatigue" style="--val: 30">
+        <span class="label">Fatigue</span>
+        <span class="track" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30" role="progressbar">
+            <span class="fill fill--fatigue"></span>
+        </span>
+        <span class="val">30%</span>
+    </div>
+</div>
