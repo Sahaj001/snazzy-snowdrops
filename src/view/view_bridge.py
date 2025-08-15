@@ -16,7 +16,24 @@ if TYPE_CHECKING:
     from models.position import Pos
     from models.tile import TilesRegistry
 
-ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape"]
+ALLOWED_INPUTS = [
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "W",
+    "A",
+    "S",
+    "D",
+    "w",
+    "a",
+    "s",
+    "d",
+    "Enter",
+    "Escape",
+    "e",
+    "E",
+]
 
 
 class ViewBridge:
@@ -81,6 +98,8 @@ class ViewBridge:
                 cmd.dialog.draw(self.canvas)
             elif cmd.type == DrawCmdType.STATUS_BAR:
                 cmd.status_bar.draw(self.canvas)
+            elif cmd.type == DrawCmdType.INVENTORY_OVERLAY:
+                cmd.inventory_overlay.draw(self.canvas)
 
         self.tiles_registry.static_count += 1
 

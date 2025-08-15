@@ -105,6 +105,10 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
     )
     event_bus = EventBus()
 
+    sound_sys = SoundSystem(
+        bgm_map=await load_json("assets/audio/bgm.json"),
+        sfx_map=await load_json("assets/audio/sfx.json"),
+    )
     return GameEngine(
         world=world,
         renderer=render_system,

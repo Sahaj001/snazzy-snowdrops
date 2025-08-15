@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from ui import DialogBox, StatusBar
+from ui import DialogBox, InventoryOverlay, StatusBar
 
 from .position import Pos
 from .sprite import Sprite
@@ -15,6 +15,7 @@ class DrawCmdType(Enum):
     TEXT = "text"
     DIALOG = "dialog"
     STATUS_BAR = "status_bar"
+    INVENTORY_OVERLAY = "inventory_overlay"
 
 
 @dataclass
@@ -29,6 +30,7 @@ class DrawCmd:
     sprite: Sprite | None = None
     dialog: DialogBox | None = None
     status_bar: StatusBar | None = None
+    inventory_overlay: InventoryOverlay | None = None
     tile_gid: int = 0  # For tile rendering
     text: str | None = None
     layer: int = 0  # Rendering order (higher = drawn later, on top)

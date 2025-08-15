@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from engine.event_bus import EventType
+from engine.event_bus import EventType, GameEvent
 from models import Pos, TileMap
 
 if TYPE_CHECKING:
@@ -83,7 +83,7 @@ class World:
         print("_handle_input payload", payload)
         etype = payload["type"]
         if etype == "key":
-            self._handle_key_event(payload)
+            self._handle_key_event(payload, event_bus)
         elif etype == "click":
             self._handle_click_event(payload, event_bus)
         else:
@@ -132,21 +132,28 @@ class World:
                 event_bus,
             )
 
-    def _handle_key_event(self, payload: dict) -> None:
+    def _handle_key_event(self, payload: dict, event_bus: EventBus) -> None:
         key = payload["key"]
 
         player = self.players[0] if self.players else None
         if not player:
             return
 
-        if key == "ArrowUp":
+        if key == "ArrowUp" or key.upper() == "W":
             player.move(0, -1 * self.tile_map.tile_size, self)
-        elif key == "ArrowDown":
+        elif key == "ArrowDown" or key.upper() == "S":
             player.move(0, 1 * self.tile_map.tile_size, self)
-        elif key == "ArrowLeft":
+        elif key == "ArrowLeft" or key.upper() == "A":
             player.move(-1 * self.tile_map.tile_size, 0, self)
-        elif key == "ArrowRight":
+        elif key == "ArrowRight" or key.upper() == "D":
             player.move(1 * self.tile_map.tile_size, 0, self)
+        elif key.upper() == "E":
+            event_bus.post(
+                GameEvent(
+                    event_type=EventType.INVENTORY_TOGGLE,
+                    payload={"type": "toggle_inventory"},
+                ),
+            )
 
     def add_entity(self, entity: Entity) -> None:
         """Add an entity to the world."""
