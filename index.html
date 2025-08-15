@@ -55,6 +55,21 @@
                 display: block;
                 transform: translateX(-0.3em);
             }
+
+            button {
+                padding: 0.6em 1.3em;
+                background-color: #f89c33;
+                font-size: 1.2em;
+                font-weight: bold;
+                border: none;
+                border-radius: 8px;
+                color: #f5b412;
+
+                --shadow-color: rgb(153, 115, 0);
+                text-shadow: 2px 2px 0 var(--shadow-color), -2px 2px 0 var(--shadow-color),
+                    2px -2px 0 var(--shadow-color), -2px -2px 0 var(--shadow-color), 0px 2px 0 var(--shadow-color),
+                    2px 0px 0 var(--shadow-color), -2px 0px 0 var(--shadow-color), 0px -2px 0 var(--shadow-color);
+            }
         </style>
     </head>
 
