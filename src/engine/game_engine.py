@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
 from engine.input_system import InputType
-from engine.state import PauseState
-from menu.pause_menu import PauseMenu
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
@@ -57,9 +55,6 @@ class GameEngine:
                 self.sound_sys.play_sfx("btn-click")
             elif event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
                 event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.INPUT
-                if event.key == "Escape":
-                    PauseMenu().make_visible()
-                    PauseState.pause()
                 self.event_bus.post(
                     GameEvent(
                         event_type=event_type,
@@ -78,3 +73,4 @@ class GameEngine:
     def spawn(self, e: Entity) -> None:
         """Add an entity to the world."""
         self.world.add_entity(e)
+         

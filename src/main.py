@@ -1,7 +1,8 @@
 # Import necessary JS bindings
 import random
 
-from js import Event, document, performance, window
+import js
+from js import document, window
 from pyodide.ffi import create_proxy
 from pyodide.http import pyfetch
 
@@ -14,10 +15,7 @@ from engine import (
     SoundSystem,
     SpriteRegistry,
 )
-from engine.state import DelayState, PauseState
 from game import Fruit, Player, World
-from menu.main_menu import MainMenu
-from menu.settings_menu import SettingsMenu
 from models import Pos, TileMap, TilesRegistry
 from view import ViewBridge
 
@@ -58,7 +56,7 @@ def add_fruits_to_world(world: World, num_fruits: int = 5) -> None:
         world.add_entity(fruit)
 
 
-async def create_engine(sound_sys: SoundSystem) -> GameEngine:
+async def create_engine() -> GameEngine:
     """Create and return the game engine."""
     # Ensure all systems are initialized
     await load_json("assets/audio/bgm.json")
@@ -105,6 +103,10 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
     )
     event_bus = EventBus()
 
+    sound_sys = SoundSystem(
+        bgm_map=await load_json("assets/audio/bgm.json"),
+        sfx_map=await load_json("assets/audio/sfx.json"),
+    )
     return GameEngine(
         world=world,
         renderer=render_system,
@@ -126,62 +128,38 @@ def on_resize(engine: GameEngine) -> None:
 
 
 # ==== GAME LOOP ====
-def tick_frame(engine, timestamp, lf_timestamp=0) -> None:  # noqa: ANN001
+def tick_frame(timestamp: float | None = None, *, engine) -> None:  # noqa: ANN001
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
     # Update
-    if not PauseState.is_paused():
-        engine.tick(dt)
-
-    # Handle Camera
-    player = engine.world.get_current_player()
-    engine.renderer.camera.center_on(player.pos)
+    engine.tick(dt)
 
     # Render
-    engine.render(timestamp - DelayState.get_delay())
+    player = engine.world.get_current_player()
+    engine.renderer.camera.center_on(player.pos)
+    engine.render(timestamp)
 
     # Clear the event bus after processing
     engine.event_bus.clear()
 
-    if PauseState.is_paused():
-        DelayState.accum_delay(timestamp - lf_timestamp)
-
     # Schedule next frame
     window.requestAnimationFrame(
-        create_proxy(
-            lambda _: tick_frame(
-                engine=engine,
-                timestamp=performance.now(),
-                lf_timestamp=timestamp,
-            ),
-        ),
+        create_proxy(lambda timestamp: tick_frame(timestamp, engine=engine)),
     )
 
 
 async def start() -> None:
     """Initialize the game engine and start the game loop."""
-    sound_sys = SoundSystem(
-        bgm_map=await load_json("assets/audio/bgm.json"),
-        sfx_map=await load_json("assets/audio/sfx.json"),
-    )
+    engine = await create_engine()
 
-    SettingsMenu(sound_sys)  # initialize SettingsMenu with sound_sys
-
-    main_menu = MainMenu()
-    main_menu.make_visible()
-
-    PauseState.pause()
-
-    engine = await create_engine(sound_sys)
-
-    def handle_resize(_event: Event) -> None:
+    def handle_resize(_event: js.Event) -> None:
         """Handle window resize events."""
         on_resize(engine)
 
     window.addEventListener("resize", create_proxy(handle_resize))
 
-    tick_frame(engine=engine, timestamp=0)
+    tick_frame(timestamp=0, engine=engine)
 
 
 async def load_json(path: str) -> dict:

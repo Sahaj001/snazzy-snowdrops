@@ -6,7 +6,7 @@ from engine.event_bus import EventType, GameEvent
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
 from models.sprite import Sprite, SpriteType
-from ui import DialogBox, StatusBar
+from ui import DialogBox, StatusBar, InventoryOverlay
 
 if TYPE_CHECKING:
     from engine.camera import Camera
@@ -75,6 +75,7 @@ class RenderSystem:
         self.camera = camera
         self.ui_overlays = {}  # overlay_id / sprite_id -> expiry_time
         self.active_dialog: DialogBox | None = None
+        self.active_inventory: InventoryOverlay | None = None
 
     def build_draw_queue(
         self,
@@ -140,6 +141,15 @@ class RenderSystem:
                 ),
             ),
         )
+
+        if self.active_inventory:
+            draw_commands.append(
+                DrawCmd(
+                    type=DrawCmdType.INVENTORY_OVERLAY,
+                    position=None,  # Position is handled by the InventoryOverlay class
+                    inventory_overlay=InventoryOverlay()
+                ),
+            )
 
         return draw_commands
 
@@ -262,6 +272,15 @@ class RenderSystem:
                 self._handle_ask_dialog_event(event)
             elif event.event_type == EventType.DIALOG_INPUT:
                 self._handle_dialog_input_event(event)
+            elif event.event_type == EventType.INVENTORY_TOGGLE:
+                if self.active_inventory:
+                    print("Toggling inventory overlay off")
+                    self.active_inventory.active = False
+                    self.active_inventory = None
+                else:
+                    print("Toggling inventory overlay on")
+                    self.active_inventory = InventoryOverlay()
+                event.consume()
 
     def _handle_ui_update_event(self, event: GameEvent, now: float) -> None:
         """Handle UI update events."""
