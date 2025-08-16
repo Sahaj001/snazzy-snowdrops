@@ -21,8 +21,8 @@ from view import ViewBridge
 
 # ==== INITIAL SETUP ====
 
-PLAYER_Z = 1  # Player's z-index for rendering
-FRUIT_Z = 2
+PLAYER_Z = 2  # Player's z-index for rendering
+FRUIT_Z = 1
 
 
 async def create_player(tile_map: TileMap) -> Player:

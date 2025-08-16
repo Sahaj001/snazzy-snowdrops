@@ -71,7 +71,8 @@ class GameEngine:
                 )
 
         self.settings.update(self.event_bus)
-        self.world.update(dt, self.event_bus)
+        if self.settings.game_state.is_resumed():
+            self.world.update(dt, self.event_bus)
 
     def render(self, now: float) -> None:
         """Render the current game state."""

@@ -78,14 +78,12 @@ class ViewBridge:
                 )
             elif cmd.type == DrawCmdType.DIALOG:
                 cmd.dialog.draw(self.canvas)
-            elif cmd.type == DrawCmdType.STATUS_BAR:
-                cmd.status_bar.draw(self.canvas)
 
     def draw_collision_box(self, cmd: DrawCmd) -> None:
         """Draw a semi-transparent rectangle for collision boxes."""
         position = cmd.position
         collision = cmd.collision_box
-        self.ctx.fillStyle = "rgba(128, 128, 128, 0.4)"
+        self.ctx.fillStyle = "rgba(128, 128, 128, 0)"
         self.ctx.fillRect(
             position.x,
             position.y,
