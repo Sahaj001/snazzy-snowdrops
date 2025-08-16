@@ -11,44 +11,38 @@ class Item:
 
 
 class Inventory:
-    """Simple inventory that tracks item quantities by ID."""
+    """Inventory keyed by Item objects directly."""
 
     def __init__(self) -> None:
-        # key: item_id, value: quantity
-        self.slots: dict[str, int] = {}
+        self.slots: dict[Item, int] = {}
 
-    def add(self, item_id: str, qty: int) -> None:
-        """Add an item to the inventory."""
+    def add(self, item: Item, qty: int) -> None:
         if qty <= 0:
             return
-        self.slots[item_id] = self.slots.get(item_id, 0) + qty
-        print(f"Added {qty}x {item_id} (total: {self.slots[item_id]})")
+        self.slots[item] = self.slots.get(item, 0) + qty
+        print(f"Added {qty}x {item.name} (total: {self.slots[item]})")
 
-    def remove(self, item_id: str, qty: int) -> bool:
-        """Remove an item from the inventory. Returns True if successful."""
-        if item_id not in self.slots or qty <= 0:
+    def remove(self, item: Item, qty: int) -> bool:
+        if item not in self.slots or qty <= 0:
             return False
-        current = self.slots[item_id]
+        current = self.slots[item]
         if qty > current:
             return False
         if qty == current:
-            del self.slots[item_id]
+            del self.slots[item]
         else:
-            self.slots[item_id] = current - qty
-        print(f"Removed {qty}x {item_id} (remaining: {self.slots.get(item_id, 0)})")
+            self.slots[item] = current - qty
+        print(f"Removed {qty}x {item.name} (remaining: {self.slots.get(item, 0)})")
         return True
 
-    def count(self, item_id: str) -> int:
-        """Return the quantity of the given item."""
-        return self.slots.get(item_id, 0)
+    def count(self, item: Item) -> int:
+        return self.slots.get(item, 0)
 
-    def has(self, item_id: str, qty: int = 1) -> bool:
-        """Check if inventory has at least `qty` of `item_id`."""
-        return self.count(item_id) >= qty
-    
+    def has(self, item: Item, qty: int = 1) -> bool:
+        return self.count(item) >= qty
+
     def return_all_items(self) -> dict[str, int]:
-        """Return a dictionary of all items with their quantities."""
-        return self.slots.copy()
+        return {item.name: qty for item, qty in self.slots.items()}
 
     def __repr__(self) -> str:
-        return f"Inventory({self.slots})"
+        return f"Inventory({self.return_all_items()})"

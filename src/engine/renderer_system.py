@@ -69,7 +69,7 @@ class RenderSystem:
         sprites: SpriteRegistry,
         view_bridge: ViewBridge,
         camera: Camera,
-        inventory_overlay: InventoryOverlay = None
+        inventory_overlay: InventoryOverlay
     ) -> None:
         self.sprites = sprites
         self.view_bridge = view_bridge

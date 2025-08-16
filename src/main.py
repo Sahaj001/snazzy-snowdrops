@@ -16,6 +16,7 @@ from engine import (
 )
 from engine.state import DelayState, PauseState
 from game import Fruit, Player, World
+from game.inventory import Inventory
 from menu.main_menu import MainMenu
 from menu.settings_menu import SettingsMenu
 from models import Pos, TileMap, TilesRegistry
@@ -81,7 +82,7 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
 
     tile_map = TileMap.load_from_tiled(tiled)
 
-    world = World(tile_map=tile_map)
+    world = World(tile_map=tile_map,inventory=Inventory())
     world_width_pixels = tile_map.width * tile_map.tile_size
     world_height_pixels = tile_map.height * tile_map.tile_size
 
@@ -102,6 +103,7 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
         sprites=sprite_registry,
         view_bridge=view_bridge,
         camera=camera,
+        inventory_overlay=world.inventory_ui
     )
     event_bus = EventBus()
 

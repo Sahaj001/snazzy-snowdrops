@@ -19,10 +19,11 @@ class World:
     def __init__(
         self,
         tile_map: TileMap,
+        inventory: Inventory
     ) -> None:
         self.players: list[Player] = []
         self.entities: list[Entity] = []
-        self.inventory: Inventory = Inventory()
+        self.inventory: Inventory = inventory
         self.inventory_ui: InventoryOverlay = InventoryOverlay(self.inventory)
         self.tile_map = tile_map
 
@@ -81,8 +82,15 @@ class World:
     def _handle_inventory_change(self, payload: dict) -> None:
         """Handle inventory change events."""
         action_type = payload["action"]
+        object_name = payload["object_name"]
+        item_id = payload.get("item_id")
+
         if action_type == "add":
-            self.inventory.add("fruit", 1)
+            item = Item(item_id, object_name)
+            self.inventory.add(item, 1)
+        elif action_type == "remove":
+            item = Item(item_id, object_name)
+            self.inventory.remove(item, 1)
 
         self.inventory_ui.items = self.inventory.return_all_items()
 

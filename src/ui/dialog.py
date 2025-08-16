@@ -21,7 +21,7 @@ class DialogBox(Drawable):
     ) -> None:
         """Draw a dialog box on the canvas."""
         # Background
-        width, height = 300, 150
+        width, height = 450, 150
         x, y = (canvas.width - width) // 2, (canvas.height - height) // 2
 
         ctx = canvas.getContext("2d", alpha=True)

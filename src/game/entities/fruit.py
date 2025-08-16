@@ -31,7 +31,7 @@ class Fruit(Entity, Interactable):
             GameEvent(
                 event_type=EventType.ASK_DIALOG,
                 payload={
-                    "dialog": f"{actor} wants to pick up / eat {self.id}? (use arrow keys to navigate)",
+                    "dialog": f"{actor.id} wants to pick up / eat {self.id}?",
                     "callback": lambda answer: (self.eat_fruit(actor, event_bus) if answer == "Eat" else ({self.add_fruit_to_invenory(actor, event_bus)} if answer == "Pick Up" else None)),
                     "options": ["Pick Up", "Eat", "Exit"],
                     "selected_index": 0,
@@ -57,9 +57,16 @@ class Fruit(Entity, Interactable):
         event_bus.post(
             GameEvent(
                 event_type=EventType.INVENTORY_CHANGE,
-                payload={"object_name": "fruit", "action": "add"}
+                payload={"object_name": "fruit", "action": "add", "item_id": self.id}
             )
         )
+
+        event_bus.post(
+                GameEvent(
+                    event_type=EventType.FRUIT_PICKED,
+                    payload={"fruit_id": self.id, "actor_id": actor.id},
+                ),
+            )
 
 
     def update(

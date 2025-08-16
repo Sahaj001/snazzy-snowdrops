@@ -3,27 +3,24 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from js import HTMLCanvasElement, document
-Inventory: "Inventory"  # Forward reference for type hinting
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game.inventory import Inventory
 
 @dataclass
 class InventoryOverlay:
-    """Represents the inventory overlay displaying items and their quantities."""
-
-    active: bool = False
+    inventory: "Inventory"
     overlay_canvas: "HTMLCanvasElement" = field(
         default_factory=lambda: document.getElementById("inventoryCanvas")
     )
     main_canvas: "HTMLCanvasElement" = field(
         default_factory=lambda: document.getElementById("gameCanvas")
     )
+    active: bool = False
 
-    def __init__(self, inventory: Inventory) -> None:
-        self.inventory = inventory
-
-    def __post_init__(self) -> None:
-        if self.items is None:
-            self.items = ["Fruit"]
+    def __post_init__(self):
+        self.items = self.inventory.return_all_items()
 
         self.overlay_canvas.style.position = "absolute"
         self.overlay_canvas.style.top = "0px"
@@ -96,6 +93,8 @@ class InventoryOverlay:
         {"color": "navy", "quantity": 1},
         {"color": "maroon", "quantity": 2},
         ]
+
+        print(self.items)
 
         cols = 6
         item_size = 40
