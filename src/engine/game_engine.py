@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from js import document, Event
+
 from engine.event_bus import EventType, GameEvent
 from engine.input_system import InputType
 
@@ -34,7 +36,8 @@ class GameEngine:
         self.sound_sys = sound_sys
         self.settings = settings
 
-        self.sound_sys.play_bgm("normal")
+        document.addEventListener("click", self._play_bgm_on_load)
+        document.addEventListener("keypress", self._play_bgm_on_load)
 
     def tick(self, dt: float) -> None:
         """Advance the game state by dt seconds."""
@@ -102,3 +105,11 @@ class GameEngine:
                 return EventType.GAME_RESUMED
             return EventType.GAME_PAUSED
         return None
+ 
+    def _play_bgm_on_load(self, event: Event) -> None:
+        if event.isTrusted:
+            self.sound_sys.play_bgm("normal")
+
+            document.removeEventListener("click", self._play_bgm_on_load)
+            document.removeEventListener("keypress", self._play_bgm_on_load)
+
