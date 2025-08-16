@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from engine.event_bus import EventBus, EventType, GameEvent
+from engine.event_bus import EventBus, EventType
 from engine.interfaces import Behaviour, Interactable, Living
 from game.entities.entity import Entity
 from game.inventory import Inventory
@@ -127,19 +127,9 @@ class Player(Entity, Living, Interactable):
         """Reduce player's HP by n, ensuring it doesn't go below 0."""
         self.hp = max(self.hp - n, 0)
 
-    def interact(self, _actor: Entity, event_bus: EventBus) -> None:
+    def interact(self, _actor: Entity, _event_bus: EventBus) -> None:
         """Handle interaction with the player, e.g., opening inventory."""
         print(f"{self.id} interacts with player.")
-        event_bus.post(
-            GameEvent(
-                event_type=EventType.UI_UPDATE,
-                payload={
-                    "overlay_id": "player_info",
-                    "inventory": self.inventory.slots,
-                    "hp": self.hp,
-                },
-            ),
-        )
 
     def get_hud_info(self) -> str:
         """Get player HUD information."""

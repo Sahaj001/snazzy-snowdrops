@@ -24,7 +24,6 @@ class RenderSystem:
     ) -> None:
         self.view_bridge = view_bridge
         self.camera = camera
-        self.ui_overlays = {}  # overlay_id / sprite_id -> expiry_time
         self.active_dialog: DialogBox | None = None
         self.status_bar = StatusBar()
 
@@ -32,43 +31,22 @@ class RenderSystem:
         self,
         world: World,
         camera: Camera,
-        now: float,
     ) -> list[DrawCmd]:
         """Generate a list of draw commands based on the current world state."""
         draw_commands = []
         draw_commands.extend(self._build_world_draw_commands(world, camera))
-        draw_commands.extend(self._build_ui_draw_commands(world, now, camera))
+        draw_commands.extend(
+            self._build_ui_draw_commands(
+                world,
+            ),
+        )
         return draw_commands
 
     def _build_ui_draw_commands(
         self,
         world: World,
-        now: float,
-        camera: Camera,
     ) -> list[DrawCmd]:
         draw_commands = []
-        for overlay_id, expiry_time in self.ui_overlays.items():
-            if expiry_time > now and overlay_id == "player_info":
-                player = world.get_current_player()
-                player_pos_x, player_pos_y = camera.world_to_screen(
-                    player.pos.x,
-                    player.pos.y,
-                )
-                hud_position = Pos(
-                    player_pos_x,
-                    player_pos_y - 1,
-                    0,
-                )
-
-                draw_commands.append(
-                    DrawCmd(
-                        type=DrawCmdType.TEXT,
-                        text=player.get_hud_info(),
-                        position=hud_position,
-                        scale=self.camera.zoom,
-                    ),
-                )
-
         if self.active_dialog:
             dialog_position = Pos(
                 world.tile_map.width * world.tile_map.tile_size / 2,
@@ -181,22 +159,12 @@ class RenderSystem:
         """Send the draw commands to the view for rendering."""
         self.view_bridge.draw(cmds)
 
-    def add_ui_overlay(self, overlay_id: str, expiry_time: float) -> None:
-        """Add a UI overlay that will expire after a certain time."""
-        self.ui_overlays[overlay_id] = expiry_time
-
     def update(self, now: float, event_bus: EventBus, world: World) -> None:
         """Update the renderer state, e.g., handle UI overlays."""
-        expired = [k for k, expiry in self.ui_overlays.items() if now > expiry]
-        for k in expired:
-            del self.ui_overlays[k]
-
         # Handle any events related to rendering, e.g., UI updates
         events = event_bus.get_events()
         for event in events:
-            if event.event_type == EventType.UI_UPDATE:
-                self._handle_ui_update_event(event, now)
-            elif event.event_type == EventType.ASK_DIALOG:
+            if event.event_type == EventType.ASK_DIALOG:
                 self._handle_ask_dialog_event(event)
             elif event.event_type == EventType.CLOSE_DIALOG:
                 # Handle closing dialog events if needed
@@ -217,14 +185,6 @@ class RenderSystem:
             )
 
             self.status_bar.update_ui()
-
-    def _handle_ui_update_event(self, event: GameEvent, now: float) -> None:
-        """Handle UI update events."""
-        overlay_id = event.payload.get("overlay_id")
-        expiry_time = event.payload.get("expiry_time", now + 5000)
-        self.ui_overlays[overlay_id] = expiry_time
-        print(f"UI overlay '{overlay_id}' added with expiry time {expiry_time}.")
-        event.consume()
 
     def _handle_ask_dialog_event(self, event: GameEvent) -> None:
         """Handle dialog events."""

@@ -11,9 +11,6 @@ class EventType(Enum):
     MOUSE_CLICK = "click"
     PLAYER_MOVED = "player_moved"
 
-    # UI events (to be removed)
-    UI_UPDATE = "ui_update"
-
     # dialog events
     ASK_DIALOG = "ask_dialog"
     CLOSE_DIALOG = "close_dialog"

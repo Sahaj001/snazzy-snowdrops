@@ -83,7 +83,10 @@ class GameEngine:
         self.renderer.update(now, self.event_bus, self.world)
         if self.settings.game_state.is_paused():
             return
-        cmds = self.renderer.build_draw_queue(self.world, self.renderer.camera, now)
+        cmds = self.renderer.build_draw_queue(
+            self.world,
+            self.renderer.camera,
+        )
         self.renderer.flush_to_view(cmds)
 
     def spawn(self, e: Entity) -> None:
