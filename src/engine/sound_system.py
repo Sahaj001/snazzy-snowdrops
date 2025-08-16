@@ -38,16 +38,24 @@ class SoundSystem:
     def set_master_vol(self, vol: float) -> None:
         self._master_vol = vol
 
-        self._bgm.volume = self._get_apparent_bgm_vol(self._cur_bgm_audio["volume"])
-        self._sfx.volume = self._get_apparent_sfx_vol(self._cur_sfx_audio["volume"])
+        self._bgm.volume = self._get_apparent_bgm_vol(
+            self._cur_bgm_audio.get("volume", 0),
+        )
+        self._sfx.volume = self._get_apparent_sfx_vol(
+            self._cur_sfx_audio.get("volume", 0),
+        )
 
     def set_bgm_vol(self, vol: float) -> None:
         self._bgm_vol = vol
-        self._bgm.volume = self._get_apparent_bgm_vol(self._cur_bgm_audio["volume"])
+        self._bgm.volume = self._get_apparent_bgm_vol(
+            self._cur_bgm_audio.get("volume", 0),
+        )
 
     def set_sfx_vol(self, vol: float) -> None:
         self._sfx_vol = vol
-        self._sfx.volume = self._get_apparent_sfx_vol(self._cur_sfx_audio["volume"])
+        self._sfx.volume = self._get_apparent_sfx_vol(
+            self._cur_sfx_audio.get("volume", 0),
+        )
 
     def play_bgm(self, audio: str) -> None:
         """Play background music.

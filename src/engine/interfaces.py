@@ -1,17 +1,16 @@
 from typing import TYPE_CHECKING, Protocol
 
-from models.position import Pos
-
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
     from game.entities.entity import Entity
+    from models.position import Pos
 
 
 class Object(Protocol):
     """Anything that has an ID and a position in the world."""
 
     id: str
-    pos: Pos
+    pos: "Pos"
 
     def destroy(self) -> None:
         """Destroy this object, removing it from the world."""

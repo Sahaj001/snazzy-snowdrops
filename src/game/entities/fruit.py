@@ -4,11 +4,12 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
-from engine.interfaces import Behaviour, Interactable, Pos
+from engine.interfaces import Behaviour, Interactable
 from game.entities.entity import Entity
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
+    from models import Pos
     from models.sprite import SpriteRegistry
 
 
@@ -39,8 +40,8 @@ class Fruit(Entity, Interactable):
             GameEvent(
                 event_type=EventType.ASK_DIALOG,
                 payload={
-                    "dialog": f"{actor.id} wants to pick up {self.id}.",
-                    "callback": lambda answer: (self.pick_up(actor, event_bus) if answer == "Yes" else None),
+                    "dialog": f"Do you want to pick up the fruit with hp {self.max_hp}.",
+                    "callback": lambda answer: self.pick_up(actor, event_bus, answer),
                     "options": ["Yes", "No"],
                     "selected_index": 0,
                 },
@@ -48,10 +49,11 @@ class Fruit(Entity, Interactable):
         )
         print(f"pushing interaction event for {self.id} by {actor.id}")
 
-    def pick_up(self, actor: Entity, event_bus: EventBus) -> None:
+    def pick_up(self, actor: Entity, event_bus: EventBus, answer: str) -> None:
         """Handle the logic for picking up the fruit."""
-        if hasattr(actor, "hp") and actor.hp > 0:
-            actor.hp = min(actor.hp + self.max_hp, actor.max_hp)
+        if answer == "Yes":
+            if hasattr(actor, "hp") and actor.hp > 0:
+                actor.hp = min(actor.hp + self.max_hp, actor.max_hp)
             print(f"{actor.id} picked up {self.id}.")
 
             event_bus.post(
@@ -60,6 +62,13 @@ class Fruit(Entity, Interactable):
                     payload={"fruit_id": self.id, "actor_id": actor.id},
                 ),
             )
+
+        event_bus.post(
+            GameEvent(
+                event_type=EventType.CLOSE_DIALOG,
+                payload={"dialog_id": "fruit_pickup_dialog"},
+            ),
+        )
 
     def update(
         self,

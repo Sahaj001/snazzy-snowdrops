@@ -1,3 +1,21 @@
+from enum import Enum
+
+
+class GameState(Enum):
+    """Enumeration for different game states."""
+
+    PAUSED = "paused"
+    RESUMED = "resumed"
+
+    def is_paused(self) -> bool:
+        """Check if the game is in a paused state."""
+        return self == GameState.PAUSED
+
+    def is_resumed(self) -> bool:
+        """Check if the game is in a resumed state."""
+        return self == GameState.RESUMED
+
+
 class PauseState:
     _paused = False
 

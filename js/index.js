@@ -7,7 +7,27 @@ async function loadProject(pyodide) {
     console.log('Project loaded...');
 }
 
+async function loadStatusBar() {
+    const response = await fetch('src/ui/components/statusbar.html');
+    const html = await response.text();
+    document.getElementById('status-container').innerHTML = html;
+}
+
+async function loadMenu() {
+    const response = await fetch('src/ui/components/menu.html');
+    const html = await response.text();
+    document.getElementById('menu-container').innerHTML = html;
+}
+
+async function loadDialog() {
+    const response = await fetch('src/ui/components/dialog.html');
+    const html = await response.text();
+    document.getElementById('dialog-container').innerHTML = html;
+}
+
 async function main() {
+    await loadMenu();
+    await loadDialog();
     console.log('Loading Pyodide...');
     const pyodide = await loadPyodide();
     pyodide.setDebug(true);
@@ -22,6 +42,9 @@ async function main() {
         import main
         await main.start()
     `);
+
+    await loadStatusBar();
+
 
 }
 

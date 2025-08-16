@@ -5,13 +5,15 @@
             "image_path": "assets/sprites/fruit.png",
             "width": 32,
             "height": 32,
-            "frame_count": 0
+            "frame_count": 0,
+            "loop": false
         },
         "picked": {
             "image_path": "assets/sprites/fruit_picked.png",
             "width": 32,
             "height": 32,
-            "frame_count": 5
+            "frame_count": 5,
+            "loop": true
         }
     }
 }

@@ -13,55 +13,56 @@ from engine import (
     RenderSystem,
     SoundSystem,
 )
-from engine.state import DelayState, PauseState
+from engine.settings import Settings
+from engine.state import DelayState
 from game import Fruit, Player, World
-from menu.main_menu import MainMenu
-from menu.settings_menu import SettingsMenu
 from models import Pos, SpriteRegistry, TileMap, TilesRegistry
 from view import ViewBridge
 
 # ==== INITIAL SETUP ====
 
-PLAYER_Z = 1  # Player's z-index for rendering
-FRUIT_Z = 2
+PLAYER_Z = 2  # Player's z-index for rendering
+FRUIT_Z = 1
 
 
-async def add_player_to_world(world: World) -> None:
+async def create_player(tile_map: TileMap) -> Player:
     """Add a player to the world at the center position."""
-    world_width_pixels = world.tile_map.width * world.tile_map.tile_size
-    world_height_pixels = world.tile_map.height * world.tile_map.tile_size
+    world_width_pixels = tile_map.width * tile_map.tile_size
+    world_height_pixels = tile_map.height * tile_map.tile_size
     player_sprite_registry_json = await load_json("assets/db/player.json")
     player_sprite_registry = SpriteRegistry.load_from_json(player_sprite_registry_json)
 
-    player = Player(
+    return Player(
         entity_id="player1",
         pos=Pos(world_width_pixels // 2, world_height_pixels // 2, PLAYER_Z),
         behaviour=None,
-        hp=40,
+        hp=5,
         fatigue=20,
         sprite_registry=player_sprite_registry,
     )
-    world.add_player(player)
 
 
-async def add_fruits_to_world(world: World, num_fruits: int = 5) -> None:
+async def create_fruits(tile_map: TileMap, num_fruits: int = 5) -> list[Fruit]:
     """Add a specified number of fruits to the world at random positions."""
     fruit_registry_json = await load_json("assets/db/fruit.json")
     fruit_registry = SpriteRegistry.load_from_json(fruit_registry_json)
+    fruits = []
     for i in range(num_fruits):
-        tile_x = random.randint(0, world.tile_map.width - 1)
-        tile_y = random.randint(0, world.tile_map.height - 1)
+        tile_x = random.randint(0, tile_map.width - 1)
+        tile_y = random.randint(0, tile_map.height - 1)
         fruit = Fruit(
             fruit_id=f"fruit_{i}",
             pos=Pos(
-                tile_x * world.tile_map.tile_size,
-                tile_y * world.tile_map.tile_size,
+                tile_x * tile_map.tile_size,
+                tile_y * tile_map.tile_size,
                 FRUIT_Z,
             ),
             behaviour=None,
             sprite_registry=fruit_registry,
         )
-        world.add_entity(fruit)
+        fruits.append(fruit)
+
+    return fruits
 
 
 async def create_engine(sound_sys: SoundSystem) -> GameEngine:
@@ -84,12 +85,12 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
 
     tile_map = TileMap.load_from_tiled(tiled)
 
-    world = World(tile_map=tile_map)
     world_width_pixels = tile_map.width * tile_map.tile_size
     world_height_pixels = tile_map.height * tile_map.tile_size
 
-    await add_player_to_world(world)
-    await add_fruits_to_world(world, num_fruits=5)
+    player = await create_player(tile_map)
+    fruits = await create_fruits(tile_map, num_fruits=5)
+    world = World(player, fruits, tile_map=tile_map)
 
     camera = Camera(
         x=2,
@@ -108,12 +109,18 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
     )
     event_bus = EventBus()
 
+    settings = Settings(
+        event_bus=event_bus,
+        sound_system=sound_sys,
+    )
+
     return GameEngine(
         world=world,
         renderer=render_system,
         input_sys=input_system,
         event_bus=event_bus,
         sound_sys=sound_sys,
+        settings=settings,
     )
 
 
@@ -129,13 +136,11 @@ def on_resize(engine: GameEngine) -> None:
 
 
 # ==== GAME LOOP ====
-def tick_frame(engine, timestamp, lf_timestamp=0) -> None:  # noqa: ANN001
+def tick_frame(engine: GameEngine, timestamp: float, lf_timestamp: float = 0) -> None:
     """Update and render the game in the main loop."""
     dt = 1 / 60  # fixed timestep for now
 
-    # Update
-    if not PauseState.is_paused():
-        engine.tick(dt)
+    engine.tick(dt)
 
     # Handle Camera
     player = engine.world.get_current_player()
@@ -147,7 +152,7 @@ def tick_frame(engine, timestamp, lf_timestamp=0) -> None:  # noqa: ANN001
     # Clear the event bus after processing
     engine.event_bus.clear()
 
-    if PauseState.is_paused():
+    if engine.settings.game_state.is_paused():
         DelayState.accum_delay(timestamp - lf_timestamp)
 
     # Schedule next frame
@@ -169,14 +174,9 @@ async def start() -> None:
         sfx_map=await load_json("assets/audio/sfx.json"),
     )
 
-    SettingsMenu(sound_sys)  # initialize SettingsMenu with sound_sys
-
-    main_menu = MainMenu()
-    main_menu.make_visible()
-
-    PauseState.pause()
-
     engine = await create_engine(sound_sys)
+
+    engine.settings.main_menu.make_visible()
 
     def handle_resize(_event: Event) -> None:
         """Handle window resize events."""

@@ -7,12 +7,22 @@ from enum import Enum
 class EventType(Enum):
     """Types of events that can be posted to the EventBus."""
 
+    # input events
     MOUSE_CLICK = "click"
     PLAYER_MOVED = "player_moved"
-    UI_UPDATE = "ui_update"
+
+    # dialog events
     ASK_DIALOG = "ask_dialog"
-    DIALOG_INPUT = "dialog_input"
+    CLOSE_DIALOG = "close_dialog"
+
+    # interaction events
     FRUIT_PICKED = "fruit_picked"
+
+    # game events
+    GAME_PAUSED = "game_paused"
+    GAME_RESUMED = "game_resumed"
+    NEW_GAME = "new_game"
+    OPEN_SETTINGS = "open_settings"
 
 
 @dataclass
@@ -42,7 +52,7 @@ class EventBus:
         """Retrieve and clear all events in the queue."""
         return list(self._queue)
 
-    def clear(self) -> None:
+    def clear(self, force: bool = False) -> None:
         """Clear the event queue."""
         # only clear events that are consumed
-        self._queue = [evt for evt in self._queue if not evt.is_consumed]
+        self._queue = [evt for evt in self._queue if not evt.is_consumed or force]

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from js import HTMLCanvasElement, Image, Math
 
 from engine.interfaces import Drawable
-from models.draw_cmd import DrawCmd
+from models import DrawCmd
 
 
 @dataclass
@@ -18,10 +18,11 @@ class Sprite(Drawable):
     frame_count: int = 1  # Number of animation frames
     origin: tuple[int, int] = (0, 0)  # Pivot/origin for rotation/scaling
     tint: tuple[int, int, int] | None = None  # RGB color tint (if any)
+    loop: bool = False
 
     def is_animated(self) -> bool:
         """Return True if sprite has more than one frame."""
-        return self.frame_count > 1
+        return self.loop
 
     def draw(
         self,
@@ -80,6 +81,7 @@ class SpriteRegistry:
                 image_path=info["image_path"],
                 size=(info["width"], info["height"]),
                 frame_count=info["frame_count"],
+                loop=info.get("loop", False),
             )
             sprite_registry.add(state, sprite)
 
