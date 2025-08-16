@@ -42,8 +42,12 @@ class GameEngine:
 
         for input_event in input_events:
             print(f"[Game Engine] Processing input event: {input_event}")
-            if input_event.input_type == InputType.CLICK and self.settings.game_state.is_resumed():
-                # handle mouse click events
+            if (
+                input_event.input_type == InputType.CLICK
+                and self.settings.game_state.is_resumed()
+                and self.renderer.active_dialog is None
+            ):
+                # handle mouse click events only when game is resumed and no dialog is displayed
                 screen_x, screen_y = input_event.position
                 world_x, world_y = self.renderer.camera.screen_to_world(
                     screen_x,
@@ -88,8 +92,6 @@ class GameEngine:
 
     def get_event_type(self, key: str) -> EventType | None:
         """Determine the event type based on the key pressed."""
-        if self.renderer.active_dialog:
-            return EventType.DIALOG_INPUT
         if key in ("ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"):
             return EventType.PLAYER_MOVED
         if key == "Escape":

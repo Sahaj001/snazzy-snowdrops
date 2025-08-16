@@ -10,7 +10,7 @@ async function loadProject(pyodide) {
 async function loadStatusBar() {
     const response = await fetch('src/ui/components/statusbar.html');
     const html = await response.text();
-    document.getElementById('hud-container').innerHTML = html;
+    document.getElementById('status-container').innerHTML = html;
 }
 
 async function loadMenu() {
@@ -19,8 +19,15 @@ async function loadMenu() {
     document.getElementById('menu-container').innerHTML = html;
 }
 
+async function loadDialog() {
+    const response = await fetch('src/ui/components/dialog.html');
+    const html = await response.text();
+    document.getElementById('dialog-container').innerHTML = html;
+}
+
 async function main() {
     await loadMenu();
+    await loadDialog();
     console.log('Loading Pyodide...');
     const pyodide = await loadPyodide();
     pyodide.setDebug(true);

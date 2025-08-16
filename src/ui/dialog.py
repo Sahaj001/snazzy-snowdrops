@@ -1,42 +1,53 @@
 from collections.abc import Callable
-from dataclasses import dataclass
 
-from js import HTMLCanvasElement
-
-from engine.interfaces import Drawable
+from js import document
 
 
-@dataclass
-class DialogBox(Drawable):
+class DialogBox:
     """Represents a dialog box with text and options."""
 
-    text: str
-    options: list[str]  # ["Yes", "No"]
-    selected_index: int = 0
-    callback: Callable[[str], None] = None
-
-    def draw(
+    def __init__(
         self,
-        canvas: HTMLCanvasElement,
+        text: str,
+        options: list[str],
+        selected_index: int = 0,
+        callback: Callable[[str], None] | None = None,
     ) -> None:
-        """Draw a dialog box on the canvas."""
-        # Background
-        width, height = 300, 150
-        x, y = (canvas.width - width) // 2, (canvas.height - height) // 2
+        self.text = text
+        self.options = options
+        self.selected_index = selected_index
+        self.callback = callback
 
-        ctx = canvas.getContext("2d", alpha=True)
+    def update(
+        self,
+    ) -> None:
+        """Update the dialog box state."""
+        dialog_message = document.querySelector(".dialog-message")
+        if dialog_message:
+            dialog_message.textContent = self.text
 
-        # Background
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)"
-        ctx.fillRect(x, y, width, height)
+        dialog_options = document.querySelectorAll(".dialog-btn")
+        for i, option in enumerate(dialog_options):
+            if i < len(self.options):
+                option.textContent = self.options[i]
+                option.style.display = "inline-block"
+                option.value = self.options[i]
 
-        # Text
-        ctx.fillStyle = "white"
-        ctx.font = "18px Arial"
-        ctx.fillText(self.text, x + 20, y + 40)
+                def make_click_handler(option_value: str):
+                    return lambda _event: self._on_option_click(option_value)
 
-        # Options
-        for i, option in enumerate(self.options):
-            color = "yellow" if i == self.selected_index else "white"
-            ctx.fillStyle = color
-            ctx.fillText(option, x + 20 + i * 100, y + 100)
+                option.onclick = make_click_handler(self.options[i])
+            else:
+                option.style.display = "none"
+
+        dialog = document.getElementById("dialog")
+        if dialog:
+            dialog.style.display = "flex"
+
+    def _on_option_click(self, value: str) -> None:
+        """Handle option click events."""
+        if self.callback:
+            self.callback(value)
+        dialog = document.getElementById("dialog")
+        if dialog:
+            dialog.style.display = "none"

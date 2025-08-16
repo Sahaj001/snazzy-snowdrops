@@ -198,8 +198,12 @@ class RenderSystem:
                 self._handle_ui_update_event(event, now)
             elif event.event_type == EventType.ASK_DIALOG:
                 self._handle_ask_dialog_event(event)
-            elif event.event_type == EventType.DIALOG_INPUT:
-                self._handle_dialog_input_event(event)
+            elif event.event_type == EventType.CLOSE_DIALOG:
+                # Handle closing dialog events if needed
+                if self.active_dialog:
+                    print(f"Closing dialog: {self.active_dialog.text}")
+                    self.active_dialog = None
+                event.consume()
 
         # update ui components like status bar
         if self.status_bar:
@@ -234,28 +238,4 @@ class RenderSystem:
             selected_index=selected_index,
             callback=callback,
         )
-        event.consume()
-
-    def _handle_dialog_input_event(self, event: GameEvent) -> None:
-        """Handle dialog input events."""
-        if self.active_dialog:
-            key = event.payload.get("key")
-            if key == "ArrowLeft":
-                self.active_dialog.selected_index = max(
-                    0,
-                    self.active_dialog.selected_index - 1,
-                )
-            elif key == "ArrowRight":
-                self.active_dialog.selected_index = min(
-                    len(self.active_dialog.options) - 1,
-                    self.active_dialog.selected_index + 1,
-                )
-            elif key == "Enter":
-                if self.active_dialog.callback:
-                    self.active_dialog.callback(
-                        self.active_dialog.options[self.active_dialog.selected_index],
-                    )
-                self.active_dialog = None
-            elif key == "Escape":
-                self.active_dialog = None
         event.consume()
