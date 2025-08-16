@@ -4,13 +4,12 @@ from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
 from engine.input_system import InputType
-from engine.state import PauseState
-from menu.pause_menu import PauseMenu
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
     from engine.input_system import InputSystem
     from engine.renderer_system import RenderSystem
+    from engine.settings import Settings
     from engine.sound_system import SoundSystem
     from game.entities.entity import Entity
     from game.world import World
@@ -26,12 +25,14 @@ class GameEngine:
         input_sys: InputSystem,
         event_bus: EventBus,
         sound_sys: SoundSystem,
+        settings: Settings,
     ) -> None:
         self.world = world
         self.renderer = renderer
         self.input = input_sys
         self.event_bus = event_bus
         self.sound_sys = sound_sys
+        self.settings = settings
 
         self.sound_sys.play_bgm("normal")
 
@@ -41,7 +42,8 @@ class GameEngine:
 
         for input_event in input_events:
             print(f"[Game Engine] Processing input event: {input_event}")
-            if input_event.input_type == InputType.CLICK:
+            if input_event.input_type == InputType.CLICK and self.settings.game_state.is_resumed():
+                # handle mouse click events
                 screen_x, screen_y = input_event.position
                 world_x, world_y = self.renderer.camera.screen_to_world(
                     screen_x,
@@ -55,12 +57,12 @@ class GameEngine:
                 )
 
                 self.sound_sys.play_sfx("btn-click")
+            # handle keyboard events
             elif input_event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
-                event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.PLAYER_MOVED
-                if input_event.key == "Escape":
-                    PauseMenu().make_visible()
-                    PauseState.pause()
-                event_type = EventType.DIALOG_INPUT if self.renderer.active_dialog else EventType.PLAYER_MOVED
+                event_type = self.get_event_type(
+                    input_event.key,
+                )
+
                 self.event_bus.post(
                     GameEvent(
                         event_type=event_type,
@@ -68,14 +70,29 @@ class GameEngine:
                     ),
                 )
 
+        self.settings.update(self.event_bus)
         self.world.update(dt, self.event_bus)
 
     def render(self, now: float) -> None:
         """Render the current game state."""
         self.renderer.update(now, self.event_bus, self.world)
+        if self.settings.game_state.is_paused():
+            return
         cmds = self.renderer.build_draw_queue(self.world, self.renderer.camera, now)
         self.renderer.flush_to_view(cmds)
 
     def spawn(self, e: Entity) -> None:
         """Add an entity to the world."""
         self.world.add_entity(e)
+
+    def get_event_type(self, key: str) -> EventType | None:
+        """Determine the event type based on the key pressed."""
+        if self.renderer.active_dialog:
+            return EventType.DIALOG_INPUT
+        if key in ("ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"):
+            return EventType.PLAYER_MOVED
+        if key == "Escape":
+            if self.settings.game_state.is_paused():
+                return EventType.GAME_RESUMED
+            return EventType.GAME_PAUSED
+        return None

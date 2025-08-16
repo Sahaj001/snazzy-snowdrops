@@ -1,35 +1,61 @@
 {
     "name": "player",
     "state": {
-        "idle": {
-            "image_path": "assets/sprites/player.png",
+        "idle_left": {
+            "image_path": "assets/sprites/player_walk_left.png",
             "width": 32,
             "height": 32,
-            "frame_count": 8
+            "frame_count": 1,
+            "loop": true
+        },
+        "idle_right": {
+            "image_path": "assets/sprites/player_walk_right.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 1,
+            "loop": true
+        },
+        "idle_up": {
+            "image_path": "assets/sprites/player_walk_up.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 1,
+            "loop": true
+        },
+        "idle_down": {
+            "image_path": "assets/sprites/player_walk_down.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 1,
+            "loop": true
         },
         "walking_left": {
             "image_path": "assets/sprites/player_walk_left.png",
             "width": 32,
             "height": 32,
-            "frame_count": 6
+            "frame_count": 6,
+            "loop": true
         },
         "walking_right": {
             "image_path": "assets/sprites/player_walk_right.png",
             "width": 32,
             "height": 32,
-            "frame_count": 6
+            "frame_count": 6,
+            "loop": true
         },
         "walking_up": {
             "image_path": "assets/sprites/player_walk_up.png",
             "width": 32,
             "height": 32,
-            "frame_count": 4
+            "frame_count": 4,
+            "loop": true
         },
         "walking_down": {
             "image_path": "assets/sprites/player_walk_down.png",
             "width": 32,
             "height": 32,
-            "frame_count": 4
+            "frame_count": 4,
+            "loop": true
         }
     }
 }

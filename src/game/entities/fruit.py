@@ -4,11 +4,12 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
-from engine.interfaces import Behaviour, Interactable, Pos
+from engine.interfaces import Behaviour, Interactable
 from game.entities.entity import Entity
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
+    from models import Pos
     from models.sprite import SpriteRegistry
 
 

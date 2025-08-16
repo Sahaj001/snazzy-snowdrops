@@ -204,20 +204,14 @@ class RenderSystem:
         # update ui components like status bar
         if self.status_bar:
             player = world.get_current_player()
-            if player:
-                self.status_bar.update(
-                    hp=player.hp,
-                    intelligence=player.intelligence,
-                    fatigue=player.fatigue,
-                    ticks=now,
-                )
-            else:
-                self.status_bar.update(
-                    hp=100,
-                    intelligence=0,
-                    fatigue=0,
-                    ticks=now,
-                )
+            self.status_bar.update(
+                hp=player.hp,
+                intelligence=player.intelligence,
+                fatigue=player.fatigue,
+                ticks=now,
+                events=events,
+            )
+
             self.status_bar.update_ui()
 
     def _handle_ui_update_event(self, event: GameEvent, now: float) -> None:

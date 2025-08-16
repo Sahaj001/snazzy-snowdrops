@@ -13,6 +13,10 @@ class EventType(Enum):
     ASK_DIALOG = "ask_dialog"
     DIALOG_INPUT = "dialog_input"
     FRUIT_PICKED = "fruit_picked"
+    GAME_PAUSED = "game_paused"
+    GAME_RESUMED = "game_resumed"
+    NEW_GAME = "new_game"
+    OPEN_SETTINGS = "open_settings"
 
 
 @dataclass
@@ -42,7 +46,7 @@ class EventBus:
         """Retrieve and clear all events in the queue."""
         return list(self._queue)
 
-    def clear(self) -> None:
+    def clear(self, force: bool = False) -> None:
         """Clear the event queue."""
         # only clear events that are consumed
-        self._queue = [evt for evt in self._queue if not evt.is_consumed]
+        self._queue = [evt for evt in self._queue if not evt.is_consumed or force]

@@ -2,6 +2,8 @@ from dataclasses import dataclass
 
 from js import document
 
+from engine.event_bus import EventType, GameEvent
+
 
 @dataclass
 class StatusBar:
@@ -14,6 +16,7 @@ class StatusBar:
     fatigue: int = 0
     max_fatigue: int = 100
     ticks: int = 0  # in-game ticks
+    hide: bool = True  # whether to hide the status bar
 
     def update(
         self,
@@ -21,15 +24,35 @@ class StatusBar:
         intelligence: int,
         fatigue: int,
         ticks: int | None = None,
+        events: list[GameEvent] | None = None,
     ) -> None:
         self.hp = hp
         self.intelligence = intelligence
         self.fatigue = fatigue
+
         if ticks is not None:
             self.ticks = ticks
 
+        if not events:
+            self.events = []
+
+        for event in events:
+            if event.event_type == EventType.GAME_PAUSED:
+                self.hide = True
+            elif event.event_type == EventType.GAME_RESUMED:
+                print("Resuming game, showing status bar")
+                self.hide = False
+
     def update_ui(self) -> None:
         """Update the UI elements for the status bar."""
+        if self.hide:
+            hud = document.querySelector("#hud")
+            if hud:
+                hud.style.display = "none"
+            return
+        hud = document.querySelector("#hud")
+        if hud:
+            hud.style.display = ""
 
         def set_stat_py(selector: str, value: int):
             bar = document.querySelector(selector)

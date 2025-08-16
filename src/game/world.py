@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING
 
-from engine.event_bus import EventType
+from engine.event_bus import EventType, GameEvent
+from game.entities.player import Player
 from models import Pos, TileMap
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
     from game.entities.entity import Entity
-    from game.entities.player import Player
 
 
 class World:
@@ -16,11 +17,29 @@ class World:
 
     def __init__(
         self,
+        player: Player,
+        entities: list[Entity],
         tile_map: TileMap,
     ) -> None:
-        self.players: list[Player] = []
-        self.entities: list[Entity] = []
+        self.players = []
+        self.entities = []
+        self.add_player(player)
+        for entity in entities:
+            self.add_entity(entity)
+
         self.tile_map = tile_map
+        # create a deep copy of the original state of the world
+        self._original_tile_map = copy.deepcopy(tile_map)
+        self._original_entities = copy.deepcopy(self.entities)
+
+    def reset_world(self) -> None:
+        """Reset the world to its original state."""
+        self.tile_map = copy.deepcopy(self._original_tile_map)
+        self.entities = copy.deepcopy(self._original_entities)
+        self.players = []
+        for player in self._original_entities:
+            if isinstance(player, Player):
+                self.add_player(player)
 
     def find_near(self, pos: Pos, radius: int) -> list[Entity]:
         """Find all entities within `radius` of the given position using Chebyshev distance."""
@@ -81,6 +100,17 @@ class World:
         events = event_bus.get_events()
 
         for event in events:
+            if event.event_type == EventType.NEW_GAME:
+                self.reset_world()
+                event.consume()
+                event_bus.clear(force=True)
+                event_bus.post(
+                    GameEvent(
+                        event_type=EventType.GAME_RESUMED,
+                        payload={},
+                    ),
+                )
+                return
             if event.event_type == EventType.MOUSE_CLICK:
                 self._handle_click_event(event.payload, event_bus)
                 event.consume()

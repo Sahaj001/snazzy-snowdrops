@@ -18,7 +18,10 @@ if TYPE_CHECKING:
 class PlayerState(Enum):
     """Enum representing the player's state."""
 
-    IDLE = "idle"
+    IDLE_RIGHT = "idle_right"
+    IDLE_LEFT = "idle_left"
+    IDLE_UP = "idle_up"
+    IDLE_DOWN = "idle_down"
     WALKING_UP = "walking_up"
     WALKING_DOWN = "walking_down"
     WALKING_LEFT = "walking_left"
@@ -50,13 +53,26 @@ class Player(Entity, Living, Interactable):
         self.max_intelligence = 100
         self.max_fatigue = 100
         self.step_size = 10  # in pixel
-        self.state = PlayerState.IDLE
+        self.state = PlayerState.IDLE_RIGHT
+        self._prev_state = PlayerState.IDLE_RIGHT  # Previous state for animation purposes
+
+    def get_new_state_from_prev_state(self) -> PlayerState:
+        """Get the new state based on the previous state."""
+        if self._prev_state == PlayerState.WALKING_LEFT:
+            return PlayerState.IDLE_LEFT
+        if self._prev_state == PlayerState.WALKING_RIGHT:
+            return PlayerState.IDLE_RIGHT
+        if self._prev_state == PlayerState.WALKING_UP:
+            return PlayerState.IDLE_UP
+        if self._prev_state == PlayerState.WALKING_DOWN:
+            return PlayerState.IDLE_DOWN
+        return self.state
 
     def move(self, key: str, world: World) -> None:
         """Move the player by dx, dy if the target tile is passable."""
         direction = Direction.from_key(key)
         if not direction:
-            self.state = PlayerState.IDLE
+            self.state = self.get_new_state_from_prev_state()
             return
 
         dx, dy = direction.value
@@ -74,7 +90,7 @@ class Player(Entity, Living, Interactable):
             elif direction.value == Direction.DOWN.value:
                 self.state = PlayerState.WALKING_DOWN
         else:
-            self.state = PlayerState.IDLE
+            self.state = self.get_new_state_from_prev_state()
 
     def update(
         self,
@@ -83,7 +99,8 @@ class Player(Entity, Living, Interactable):
         """Update the player's state."""
         # Player-specific update logic can go here
         events = kwargs.get("events", [])
-        self.state = PlayerState.IDLE  # Reset state to idle by default
+        curr_state = self.state
+        self.state = self.get_new_state_from_prev_state()
         for event in events:
             if event.event_type == EventType.PLAYER_MOVED:
                 key = event.payload.get("key")
@@ -91,6 +108,7 @@ class Player(Entity, Living, Interactable):
                     self.move(key, kwargs.get("world"))
                 event.consume()
 
+        self._prev_state = curr_state
         self.update_frame_idx()
 
     def update_frame_idx(self) -> None:
@@ -127,10 +145,9 @@ class Player(Entity, Living, Interactable):
         """Get player HUD information."""
         hud_info = {
             "id": self.id,
-            "hp": self.hp,
-            "inventory": self.inventory.slots,
             "pos": self.pos,
-            "state": self.state,
+            "state": self.state.value,
+            "prev_state": self._prev_state.value,
         }
         return str(hud_info)
 

@@ -13,7 +13,14 @@ async function loadStatusBar() {
     document.getElementById('hud-container').innerHTML = html;
 }
 
+async function loadMenu() {
+    const response = await fetch('src/ui/components/menu.html');
+    const html = await response.text();
+    document.getElementById('menu-container').innerHTML = html;
+}
+
 async function main() {
+    await loadMenu();
     console.log('Loading Pyodide...');
     const pyodide = await loadPyodide();
     pyodide.setDebug(true);
@@ -30,6 +37,7 @@ async function main() {
     `);
 
     await loadStatusBar();
+
 
 }
 
