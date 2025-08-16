@@ -8,6 +8,7 @@ from game.entities.entity import Entity
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
+    from world import World
 
 
 class Fruit(Entity, Interactable):
@@ -30,20 +31,20 @@ class Fruit(Entity, Interactable):
             GameEvent(
                 event_type=EventType.ASK_DIALOG,
                 payload={
-                    "dialog": f"{actor.id} wants to pick up {self.id}.",
-                    "callback": lambda answer: (self.pick_up(actor, event_bus) if answer == "Yes" else None),
-                    "options": ["Yes", "No"],
+                    "dialog": f"{actor} wants to pick up / eat {self.id}? (use arrow keys to navigate)",
+                    "callback": lambda answer: (self.eat_fruit(actor, event_bus) if answer == "Eat" else ({self.add_fruit_to_invenory(actor, event_bus)} if answer == "Pick Up" else None)),
+                    "options": ["Pick Up", "Eat", "Exit"],
                     "selected_index": 0,
                 },
             ),
         )
         print(f"pushing interaction event for {self.id} by {actor.id}")
 
-    def pick_up(self, actor: Entity, event_bus: EventBus) -> None:
+    def eat_fruit(self, actor: Entity, event_bus: EventBus) -> None:
         """Handle the logic for picking up the fruit."""
         if hasattr(actor, "hp") and actor.hp > 0:
             actor.hp = min(actor.hp + self.max_hp, actor.max_hp)
-            print(f"{actor.id} picked up {self.id}.")
+            print(f"{actor.id} has eaten {self.id}.")
 
             event_bus.post(
                 GameEvent(
@@ -51,6 +52,15 @@ class Fruit(Entity, Interactable):
                     payload={"fruit_id": self.id, "actor_id": actor.id},
                 ),
             )
+    
+    def add_fruit_to_invenory(self, actor: Entity, event_bus: EventBus) -> None:
+        event_bus.post(
+            GameEvent(
+                event_type=EventType.INVENTORY_CHANGE,
+                payload={"object_name": "fruit", "action": "add"}
+            )
+        )
+
 
     def update(
         self,

@@ -13,6 +13,7 @@ class EventType(Enum):
     DIALOG_INPUT = "dialog_input"
     FRUIT_PICKED = "fruit_picked"
     INVENTORY_TOGGLE = "inventory_toggle"
+    INVENTORY_CHANGE = "inventory_change"
 
 
 @dataclass

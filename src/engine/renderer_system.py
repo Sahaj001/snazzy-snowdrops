@@ -69,13 +69,14 @@ class RenderSystem:
         sprites: SpriteRegistry,
         view_bridge: ViewBridge,
         camera: Camera,
+        inventory_overlay: InventoryOverlay = None
     ) -> None:
         self.sprites = sprites
         self.view_bridge = view_bridge
         self.camera = camera
         self.ui_overlays = {}  # overlay_id / sprite_id -> expiry_time
         self.active_dialog: DialogBox | None = None
-        self.active_inventory: InventoryOverlay | None = None
+        self.inventory_overlay: InventoryOverlay = inventory_overlay
 
     def build_draw_queue(
         self,
@@ -142,12 +143,12 @@ class RenderSystem:
             ),
         )
 
-        if self.active_inventory:
+        if self.inventory_overlay:
             draw_commands.append(
                 DrawCmd(
                     type=DrawCmdType.INVENTORY_OVERLAY,
                     position=None,  # Position is handled by the InventoryOverlay class
-                    inventory_overlay=InventoryOverlay(),
+                    inventory_overlay=self.inventory_overlay,
                 ),
             )
 
@@ -273,13 +274,12 @@ class RenderSystem:
             elif event.event_type == EventType.DIALOG_INPUT:
                 self._handle_dialog_input_event(event)
             elif event.event_type == EventType.INVENTORY_TOGGLE:
-                if self.active_inventory:
+                if self.inventory_overlay.active:
                     print("Toggling inventory overlay off")
-                    self.active_inventory.active = False
-                    self.active_inventory = None
-                else:
+                    self.inventory_overlay.active = False
+                elif not self.inventory_overlay.active:
                     print("Toggling inventory overlay on")
-                    self.active_inventory = InventoryOverlay()
+                    self.inventory_overlay.active = True
                 event.consume()
 
     def _handle_ui_update_event(self, event: GameEvent, now: float) -> None:

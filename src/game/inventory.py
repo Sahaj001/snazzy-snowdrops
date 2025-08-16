@@ -45,6 +45,10 @@ class Inventory:
     def has(self, item_id: str, qty: int = 1) -> bool:
         """Check if inventory has at least `qty` of `item_id`."""
         return self.count(item_id) >= qty
+    
+    def return_all_items(self) -> dict[str, int]:
+        """Return a dictionary of all items with their quantities."""
+        return self.slots.copy()
 
     def __repr__(self) -> str:
         return f"Inventory({self.slots})"

@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
 from models import Pos, TileMap
+from game.inventory import Inventory, Item
+from ui.inventory import InventoryOverlay
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
@@ -20,6 +22,8 @@ class World:
     ) -> None:
         self.players: list[Player] = []
         self.entities: list[Entity] = []
+        self.inventory: Inventory = Inventory()
+        self.inventory_ui: InventoryOverlay = InventoryOverlay(self.inventory)
         self.tile_map = tile_map
 
     def find_near(self, pos: Pos, radius: int) -> list[Entity]:
@@ -67,9 +71,20 @@ class World:
             elif event.event_type == EventType.FRUIT_PICKED:
                 self._handle_fruit_picked(event.payload)
                 event.consume()
+            elif event.event_type == EventType.INVENTORY_CHANGE:
+                self._handle_inventory_change(event.payload)
+                event.consume()
 
         for e in self.entities:
             e.update(self, dt)
+
+    def _handle_inventory_change(self, payload: dict) -> None:
+        """Handle inventory change events."""
+        action_type = payload["action"]
+        if action_type == "add":
+            self.inventory.add("fruit", 1)
+
+        self.inventory_ui.items = self.inventory.return_all_items()
 
     def _handle_fruit_picked(self, payload: dict) -> None:
         """Handle fruit picked events."""
