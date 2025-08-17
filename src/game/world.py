@@ -121,7 +121,12 @@ class World:
                 self._handle_click_event(event.payload, event_bus)
                 event.consume()
         for e in self.entities:
-            e.update(time_delta=dt, events=events, world=self)
+            e.update(
+                time_delta=dt,
+                events=events,
+                world=self,
+                target_pos=self.get_current_player().pos,
+            )
 
     def _check_if_click_on_entity(
         self,
