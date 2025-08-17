@@ -220,8 +220,7 @@ label {
 .dialog {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(4px);
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -229,11 +228,9 @@ label {
 }
 
 .dialog-box {
-    background: rgba(20, 20, 28, 0.92);
+    background: rgba(20, 20, 28, 0.8);
     color: #f3f4f6;
     padding: 20px 24px;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     max-width: 320px;
     text-align: center;
     font: 500 14px/1.4 system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
@@ -250,16 +247,34 @@ label {
 }
 
 .dialog-btn {
-    background: rgba(255, 255, 255, 0.08);
-    color: #f3f4f6;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 6px;
-    padding: 8px 16px;
+    background: #4b2e1e; /* rich brown base */
+    color: #f5e6a7; /* soft pale yellow text */
+    border: 2px solid #7a4f2c; /* medium brown border */
+    border-radius: 0; /* blocky retro look */
+    padding: 10px 20px;
+    font-size: 14px;
+    font-family: 'Press Start 2P', monospace;
     cursor: pointer;
-    transition: background 0.25s ease, transform 0.15s ease;
+    image-rendering: pixelated;
+
+    /* pixel border illusion */
+    box-shadow: 2px 2px 0 #2a1a11, -2px -2px 0 #7a4f2c;
+
+    /* remove smooth scaling transition, keep crispness */
+    transition: none;
 }
 
 .dialog-btn:hover {
-    background: rgba(255, 255, 255, 0.18);
-    transform: scale(1.05);
+    background: #6a3e25; /* lighter brown on hover */
+    border-color: #d4a017; /* golden accent */
+    color: #fff7c2; /* brighter yellow text */
+    box-shadow: 2px 2px 0 #2a1a11, -2px -2px 0 #8b5a33;
+}
+
+.dialog-btn:disabled {
+    background: #3a2417;
+    color: rgba(245, 230, 167, 0.4); /* faded yellow */
+    border-color: #5c3922;
+    box-shadow: none;
+    cursor: not-allowed;
 }
