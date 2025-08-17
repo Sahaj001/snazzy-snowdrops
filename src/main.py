@@ -93,12 +93,9 @@ async def create_fruits(tile_map: TileMap, num_fruits: int = 5) -> list[Fruit]:
     return fruits
 
 
-async def create_engine(sound_sys: SoundSystem) -> GameEngine:
+async def create_engine() -> GameEngine:
     """Create and return the game engine."""
     # Ensure all systems are initialized
-    await load_json("assets/audio/bgm.json")
-    await load_json("assets/audio/sfx.json")
-
     canvas = document.getElementById("gameCanvas")
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
@@ -129,6 +126,11 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
         world_max_y=world_height_pixels,
         world_max_x=world_width_pixels,
         zoom=1.25,
+    )
+
+    sound_sys = SoundSystem(
+        bgm_map=await load_json("assets/audio/bgm.json"),
+        sfx_map=await load_json("assets/audio/sfx.json"),
     )
 
     view_bridge = ViewBridge(canvas, input_system, tile_registry)
@@ -198,12 +200,7 @@ def tick_frame(engine: GameEngine, timestamp: float, lf_timestamp: float = 0) ->
 
 async def start() -> None:
     """Initialize the game engine and start the game loop."""
-    sound_sys = SoundSystem(
-        bgm_map=await load_json("assets/audio/bgm.json"),
-        sfx_map=await load_json("assets/audio/sfx.json"),
-    )
-
-    engine = await create_engine(sound_sys)
+    engine = await create_engine()
 
     engine.settings.main_menu.make_visible()
 
