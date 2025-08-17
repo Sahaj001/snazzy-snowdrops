@@ -1,6 +1,26 @@
 from enum import Enum
 
 
+class PlaceMode:
+    _enabled = False
+
+    @classmethod
+    def enable(cls) -> None:
+        cls._enabled = True
+
+    @classmethod
+    def disable(cls) -> None:
+        cls._enabled = False
+
+    @classmethod
+    def is_enabled(cls) -> bool:
+        return cls._enabled
+
+    def __new__(cls) -> None:
+        msg = f"{cls.__name__} can't be instantiated"
+        raise TypeError(msg)
+
+
 class GameState(Enum):
     """Enumeration for different game states."""
 

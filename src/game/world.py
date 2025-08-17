@@ -117,7 +117,7 @@ class World:
                     ),
                 )
                 return
-            if event.event_type == EventType.MOUSE_CLICK:
+            if event.event_type == EventType.MOUSE_CLICK and not event.is_consumed:
                 self._handle_click_event(event.payload, event_bus)
                 event.consume()
         for e in self.entities:
@@ -128,7 +128,7 @@ class World:
                 target_pos=self.get_current_player().pos,
             )
 
-    def _check_if_click_on_entity(
+    def check_if_click_on_entity(
         self,
         tile_x: int,
         tile_y: int,
@@ -154,7 +154,7 @@ class World:
 
         player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
         entities_in_scope = self.find_near(player_pos, self.tile_map.tile_size)
-        clicked_entity = self._check_if_click_on_entity(
+        clicked_entity = self.check_if_click_on_entity(
             world_x,
             world_y,
             entities_in_scope,

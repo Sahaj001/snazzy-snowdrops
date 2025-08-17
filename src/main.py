@@ -13,6 +13,7 @@ from engine import (
     RenderSystem,
     SoundSystem,
 )
+from engine.place import PlaceSystem
 from engine.settings import Settings
 from engine.state import DelayState
 from game import Fruit, Player, World, Zombie
@@ -99,7 +100,7 @@ async def create_engine() -> GameEngine:
     canvas = document.getElementById("gameCanvas")
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
-    input_system = InputSystem()
+    input_sys = InputSystem()
 
     tiled = await load_json("assets/tilemap/cj.tmj")
 
@@ -133,7 +134,7 @@ async def create_engine() -> GameEngine:
         sfx_map=await load_json("assets/audio/sfx.json"),
     )
 
-    view_bridge = ViewBridge(canvas, input_system, tile_registry)
+    view_bridge = ViewBridge(canvas, input_sys, tile_registry)
     render_system = RenderSystem(
         view_bridge=view_bridge,
         camera=camera,
@@ -145,13 +146,22 @@ async def create_engine() -> GameEngine:
         sound_system=sound_sys,
     )
 
+    place_sys = PlaceSystem(
+        input_sys=input_sys,
+        event_bus=event_bus,
+        tile_map=tile_map,
+        fruit_registry=SpriteRegistry.load_from_json(await load_json("assets/db/fruit.json")),
+        world=world,
+    )
+
     return GameEngine(
         world=world,
         renderer=render_system,
-        input_sys=input_system,
+        input_sys=input_sys,
         event_bus=event_bus,
         sound_sys=sound_sys,
         settings=settings,
+        place_sys=place_sys,
     )
 
 

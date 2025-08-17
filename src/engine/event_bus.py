@@ -24,6 +24,9 @@ class EventType(Enum):
     NEW_GAME = "new_game"
     OPEN_SETTINGS = "open_settings"
 
+    # throw mode
+    PLACE_MODE_STATE_CHANGE = "place_mode_state_change"
+
 
 @dataclass
 class GameEvent:
@@ -49,8 +52,8 @@ class EventBus:
         self._queue.append(evt)
 
     def get_events(self) -> list[GameEvent]:
-        """Retrieve and clear all events in the queue."""
-        return list(self._queue)
+        """Retrieve all events in the queue."""
+        return self._queue
 
     def clear(self, force: bool = False) -> None:
         """Clear the event queue."""
