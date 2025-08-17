@@ -4,47 +4,45 @@ from __future__ import annotations
 class Item:
     """Represents an item type."""
 
-    def __init__(self, item_id: str, name: str, *, stackable: bool = True) -> None:
+    def __init__(self, item_id: str, name: str, *, stackable: bool = False) -> None:
         self.id = item_id
         self.name = name
         self.stackable = stackable
+        self.image_url = None
 
 
 class Inventory:
-    """Simple inventory that tracks item quantities by ID."""
+    """Inventory for non-stackable items keyed by item.id."""
 
     def __init__(self) -> None:
-        # key: item_id, value: quantity
-        self.slots: dict[str, int] = {}
+        self.slots: dict[int, "Item"] = {}  # key = item.id, value = item object
 
-    def add(self, item_id: str, qty: int) -> None:
-        """Add an item to the inventory."""
-        if qty <= 0:
-            return
-        self.slots[item_id] = self.slots.get(item_id, 0) + qty
-        print(f"Added {qty}x {item_id} (total: {self.slots[item_id]})")
+    def add(self, item: "Item") -> None:
+        # Each item is unique, keyed by id
+        self.add_image(item)
+        self.slots[item.id] = item
+        print(f"Added {item.name} (id={item.id})")
 
-    def remove(self, item_id: str, qty: int) -> bool:
-        """Remove an item from the inventory. Returns True if successful."""
-        if item_id not in self.slots or qty <= 0:
+    def remove(self, item: "Item") -> bool:
+        if item.id not in self.slots:
             return False
-        current = self.slots[item_id]
-        if qty > current:
-            return False
-        if qty == current:
-            del self.slots[item_id]
-        else:
-            self.slots[item_id] = current - qty
-        print(f"Removed {qty}x {item_id} (remaining: {self.slots.get(item_id, 0)})")
+        del self.slots[item.id]
+        print(f"Removed {item.name} (id={item.id})")
         return True
 
-    def count(self, item_id: str) -> int:
-        """Return the quantity of the given item."""
-        return self.slots.get(item_id, 0)
+    def count(self) -> int:
+        return len(self.slots)
+    
+    def add_image(self, item: Item) -> None:
+        """Add an image URL to the item."""
+        if item.name == "fruit":
+            item.image_url = "assets/sprites/fruit.png"
 
-    def has(self, item_id: str, qty: int = 1) -> bool:
-        """Check if inventory has at least `qty` of `item_id`."""
-        return self.count(item_id) >= qty
+    def has(self, item: "Item") -> bool:
+        return item.id in self.slots
+
+    def return_all_items(self) -> dict[int, "Item"]:
+        return dict(self.slots)
 
     def __repr__(self) -> str:
         return f"Inventory({self.slots})"

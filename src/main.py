@@ -16,6 +16,7 @@ from engine import (
 from engine.settings import Settings
 from engine.state import DelayState
 from game import Fruit, Player, World
+from game.inventory import Inventory
 from models import Pos, SpriteRegistry, TileMap, TilesRegistry
 from view import ViewBridge
 
@@ -90,7 +91,7 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
 
     player = await create_player(tile_map)
     fruits = await create_fruits(tile_map, num_fruits=5)
-    world = World(player, fruits, tile_map=tile_map)
+    world = World(player, fruits, tile_map=tile_map, inventory=Inventory())
 
     camera = Camera(
         x=2,
@@ -106,6 +107,7 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
     render_system = RenderSystem(
         view_bridge=view_bridge,
         camera=camera,
+        inventory_overlay=world.inventory_ui
     )
     event_bus = EventBus()
 

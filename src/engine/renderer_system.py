@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from engine.event_bus import EventType, GameEvent
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
-from ui import DialogBox, StatusBar
+from ui import DialogBox, StatusBar, InventoryOverlay
 
 if TYPE_CHECKING:
     from engine.camera import Camera
@@ -21,11 +21,13 @@ class RenderSystem:
         self,
         view_bridge: ViewBridge,
         camera: Camera,
+        inventory_overlay: InventoryOverlay
     ) -> None:
         self.view_bridge = view_bridge
         self.camera = camera
         self.active_dialog: DialogBox | None = None
         self.status_bar = StatusBar()
+        self.inventory_overlay: InventoryOverlay = inventory_overlay
 
     def build_draw_queue(
         self,
@@ -59,6 +61,15 @@ class RenderSystem:
                     dialog=self.active_dialog,
                     position=dialog_position,
                     scale=self.camera.zoom,
+                ),
+            )
+
+        if self.inventory_overlay:
+            draw_commands.append(
+                DrawCmd(
+                    type=DrawCmdType.INVENTORY_OVERLAY,
+                    position=None,  # Position is handled by the InventoryOverlay class
+                    inventory_overlay=self.inventory_overlay,
                 ),
             )
 
@@ -171,6 +182,14 @@ class RenderSystem:
                 if self.active_dialog:
                     print(f"Closing dialog: {self.active_dialog.text}")
                     self.active_dialog = None
+                event.consume()
+            elif event.event_type == EventType.INVENTORY_TOGGLE:
+                if self.inventory_overlay.active:
+                    print("Toggling inventory overlay off")
+                    self.inventory_overlay.active = False
+                elif not self.inventory_overlay.active:
+                    print("Toggling inventory overlay on")
+                    self.inventory_overlay.active = True
                 event.consume()
 
         # update ui components like status bar

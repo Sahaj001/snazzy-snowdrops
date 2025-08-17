@@ -49,8 +49,10 @@ class GameEngine:
                 input_event.input_type == InputType.CLICK
                 and self.settings.game_state.is_resumed()
                 and self.renderer.active_dialog is None
+                and self.renderer.inventory_overlay.active is False
             ):
                 # handle mouse click events only when game is resumed and no dialog is displayed
+                print(self.renderer.inventory_overlay.active)
                 screen_x, screen_y = input_event.position
                 world_x, world_y = self.renderer.camera.screen_to_world(
                     screen_x,
@@ -104,6 +106,8 @@ class GameEngine:
             if self.settings.game_state.is_paused():
                 return EventType.GAME_RESUMED
             return EventType.GAME_PAUSED
+        if key == "e":
+            return EventType.INVENTORY_TOGGLE
         return None
  
     def _play_bgm_on_load(self, event: Event) -> None:
