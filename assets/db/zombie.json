@@ -1,0 +1,33 @@
+{
+    "name": "zombie",
+    "state": {
+        "walking_left": {
+            "image_path": "assets/sprites/zombie_walk_left.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 3,
+            "loop": true
+        },
+        "walking_right": {
+            "image_path": "assets/sprites/zombie_walk_right.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 3,
+            "loop": true
+        },
+        "walking_up": {
+            "image_path": "assets/sprites/zombie_walk_up.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 3,
+            "loop": true
+        },
+        "walking_down": {
+            "image_path": "assets/sprites/zombie_walk_down.png",
+            "width": 32,
+            "height": 32,
+            "frame_count": 3,
+            "loop": true
+        }
+    }
+}

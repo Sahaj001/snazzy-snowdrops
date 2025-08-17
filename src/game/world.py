@@ -4,11 +4,12 @@ import copy
 from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
-from game.entities.player import Player
+from game import Player
 from models import Pos, TileMap
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
+    from game import Zombie
     from game.entities.entity import Entity
 
 
@@ -19,13 +20,18 @@ class World:
         self,
         player: Player,
         entities: list[Entity],
+        zombies: list[Zombie],
         tile_map: TileMap,
     ) -> None:
         self.players = []
         self.entities = []
+        self.zombies = []
         self.add_player(player)
         for entity in entities:
             self.add_entity(entity)
+        for zombie in zombies:
+            self.zombies.append(zombie)
+            self.add_entity(zombie)
 
         self.tile_map = tile_map
         # create a deep copy of the original state of the world

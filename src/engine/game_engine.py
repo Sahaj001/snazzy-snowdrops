@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from js import document, Event
+from js import Event, document
 
 from engine.event_bus import EventType, GameEvent
 from engine.input_system import InputType
@@ -105,11 +105,10 @@ class GameEngine:
                 return EventType.GAME_RESUMED
             return EventType.GAME_PAUSED
         return None
- 
+
     def _play_bgm_on_load(self, event: Event) -> None:
         if event.isTrusted:
             self.sound_sys.play_bgm("normal")
 
             document.removeEventListener("click", self._play_bgm_on_load)
             document.removeEventListener("keypress", self._play_bgm_on_load)
-
