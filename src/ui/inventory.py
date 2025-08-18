@@ -3,15 +3,41 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from js import document, HTMLDivElement
+
+from engine.event_bus import EventType, GameEvent
+from engine.state import GameState
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from game.inventory import Inventory
+    from engine.event_bus import EventBus
+
+class InventoryState:
+
+    INVENTORY_ACTIVE: bool = True
+    overlay_div: HTMLDivElement = document.querySelector(".inventory-overlay")
+
+    @classmethod  
+    def update_inventory(cls, game_state) -> None:
+        """Update the inventory state based on game events."""        
+        if game_state == GameState.PAUSED:
+            cls.INVENTORY_ACTIVE = False
+            cls.overlay_div.style.display = "none"
+        elif game_state == GameState.RESUMED:
+            cls.INVENTORY_ACTIVE = True
+            cls.overlay_div.style.display = "flex"
+    
+    @classmethod
+    def is_inventory_active(cls) -> bool:
+        """Check if the inventory is currently active."""
+        return cls.INVENTORY_ACTIVE
+
 
 @dataclass
 class InventoryOverlay:
     inventory: "Inventory"
-    active: bool = False
+    active: bool = InventoryState.is_inventory_active()
     overlay_div: HTMLDivElement = field(init=False)  # declare at class level
 
     def __post_init__(self):
@@ -26,7 +52,8 @@ class InventoryOverlay:
         # Fetch items
         self.items = self.inventory.return_all_items()
 
-    def draw(self, canvas=None):
+    def draw(self, canvas=None): 
+        self.active = InventoryState.is_inventory_active() 
         if not self.active:
             self.overlay_div.style.display = "none"
             return

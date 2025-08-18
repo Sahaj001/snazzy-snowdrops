@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
+from engine.state import GameState
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
-from ui import DialogBox, StatusBar, InventoryOverlay
+from ui import DialogBox, StatusBar, InventoryOverlay, InventoryState
 
 if TYPE_CHECKING:
     from engine.camera import Camera
@@ -21,7 +22,7 @@ class RenderSystem:
         self,
         view_bridge: ViewBridge,
         camera: Camera,
-        inventory_overlay: InventoryOverlay
+        inventory_overlay: InventoryOverlay,
     ) -> None:
         self.view_bridge = view_bridge
         self.camera = camera
@@ -64,14 +65,13 @@ class RenderSystem:
                 ),
             )
 
-        if self.inventory_overlay:
-            draw_commands.append(
-                DrawCmd(
-                    type=DrawCmdType.INVENTORY_OVERLAY,
-                    position=None,  # Position is handled by the InventoryOverlay class
-                    inventory_overlay=self.inventory_overlay,
-                ),
-            )
+        draw_commands.append(
+            DrawCmd(
+                type=DrawCmdType.INVENTORY_OVERLAY,
+                position=None,  # Position is handled by the InventoryOverlay class
+                inventory_overlay=self.inventory_overlay,
+            ),
+        )
 
         return draw_commands
 
@@ -182,14 +182,6 @@ class RenderSystem:
                 if self.active_dialog:
                     print(f"Closing dialog: {self.active_dialog.text}")
                     self.active_dialog = None
-                event.consume()
-            elif event.event_type == EventType.INVENTORY_TOGGLE:
-                if self.inventory_overlay.active:
-                    print("Toggling inventory overlay off")
-                    self.inventory_overlay.active = False
-                elif not self.inventory_overlay.active:
-                    print("Toggling inventory overlay on")
-                    self.inventory_overlay.active = True
                 event.consume()
 
         # update ui components like status bar

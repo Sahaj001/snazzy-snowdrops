@@ -24,9 +24,9 @@ class EventType(Enum):
     GAME_RESUMED = "game_resumed"
     NEW_GAME = "new_game"
     OPEN_SETTINGS = "open_settings"
+    OPEN_HELP = "open_help"
 
     #inventory events
-    INVENTORY_TOGGLE = "inventory_toggle"
     INVENTORY_CHANGE = "inventory_change"
 
 

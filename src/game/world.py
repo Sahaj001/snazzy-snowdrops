@@ -168,18 +168,6 @@ class World:
         key = payload["key"]
         print("Key pressed:", key)
 
-        player = self.players[0] if self.players else None
-        if not player:
-            return
-
-        if key.upper() == "E":
-            event_bus.post(
-                GameEvent(
-                    event_type=EventType.INVENTORY_TOGGLE,
-                    payload={"type": "toggle_inventory"},
-                ),
-            )
-
     def _handle_click_event(self, payload: dict, event_bus: EventBus) -> None:
         """Handle click events to interact with entities."""
         world_x, world_y = payload["position"]
