@@ -42,7 +42,7 @@ class Fruit(Entity, Interactable):
                 payload={
                     "dialog": f"Do you want to pick up the fruit with hp {self.max_hp}.",
                     "callback": lambda answer: self.pick_up(actor, event_bus, answer),
-                    "options": ["Yes", "No"],
+                    "options": ["Pick Up", "Eat", "Exit"],
                     "selected_index": 0,
                 },
             ),
@@ -51,10 +51,10 @@ class Fruit(Entity, Interactable):
 
     def pick_up(self, actor: Entity, event_bus: EventBus, answer: str) -> None:
         """Handle the logic for picking up the fruit."""
-        if answer == "Yes":
+        if answer == "Eat":
             if hasattr(actor, "hp") and actor.hp > 0:
                 actor.hp = min(actor.hp + self.max_hp, actor.max_hp)
-            print(f"{actor.id} picked up {self.id}.")
+            print(f"{actor.id} has eaten {self.id}.")
 
             event_bus.post(
                 GameEvent(
@@ -62,6 +62,22 @@ class Fruit(Entity, Interactable):
                     payload={"fruit_id": self.id, "actor_id": actor.id},
                 ),
             )
+
+        if answer == "Pick Up":
+            event_bus.post(
+                GameEvent(
+                    event_type=EventType.INVENTORY_CHANGE,
+                    payload={"object_name": "fruit", "action": "add", "item_id": self.id}
+                )
+            )
+
+            event_bus.post(
+                    GameEvent(
+                        event_type=EventType.FRUIT_PICKED,
+                        payload={"fruit_id": self.id, "actor_id": actor.id},
+                    ),
+                )
+
 
         event_bus.post(
             GameEvent(

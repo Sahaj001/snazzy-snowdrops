@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
+from engine.state import GameState
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
-from ui import DialogBox, StatusBar
+from ui import DialogBox, StatusBar, InventoryOverlay, InventoryState
 
 if TYPE_CHECKING:
     from engine.camera import Camera
@@ -21,11 +22,13 @@ class RenderSystem:
         self,
         view_bridge: ViewBridge,
         camera: Camera,
+        inventory_overlay: InventoryOverlay,
     ) -> None:
         self.view_bridge = view_bridge
         self.camera = camera
         self.active_dialog: DialogBox | None = None
         self.status_bar = StatusBar()
+        self.inventory_overlay: InventoryOverlay = inventory_overlay
 
     def build_draw_queue(
         self,
@@ -61,6 +64,14 @@ class RenderSystem:
                     scale=self.camera.zoom,
                 ),
             )
+
+        draw_commands.append(
+            DrawCmd(
+                type=DrawCmdType.INVENTORY_OVERLAY,
+                position=None,  # Position is handled by the InventoryOverlay class
+                inventory_overlay=self.inventory_overlay,
+            ),
+        )
 
         return draw_commands
 

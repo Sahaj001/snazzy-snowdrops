@@ -10,6 +10,7 @@ class EventType(Enum):
     # input events
     MOUSE_CLICK = "click"
     PLAYER_MOVED = "player_moved"
+    INPUT = "input"
 
     # dialog events
     ASK_DIALOG = "ask_dialog"
@@ -23,6 +24,10 @@ class EventType(Enum):
     GAME_RESUMED = "game_resumed"
     NEW_GAME = "new_game"
     OPEN_SETTINGS = "open_settings"
+    OPEN_HELP = "open_help"
+
+    #inventory events
+    INVENTORY_CHANGE = "inventory_change"
 
     # throw mode
     PLACE_MODE_STATE_CHANGE = "place_mode_state_change"

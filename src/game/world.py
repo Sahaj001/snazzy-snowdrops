@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from engine.event_bus import EventType, GameEvent
 from game import Player
 from models import Pos, TileMap
+from game.inventory import Inventory, Item
+from ui.inventory import InventoryOverlay
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
@@ -22,10 +24,15 @@ class World:
         entities: list[Entity],
         zombies: list[Zombie],
         tile_map: TileMap,
+        inventory: Inventory
     ) -> None:
         self.players = []
         self.entities = []
         self.zombies = []
+
+        self.inventory: Inventory = inventory
+        self.inventory_ui: InventoryOverlay = InventoryOverlay(self.inventory)
+
         self.add_player(player)
         for entity in entities:
             self.add_entity(entity)
@@ -120,6 +127,13 @@ class World:
             if event.event_type == EventType.MOUSE_CLICK and not event.is_consumed:
                 self._handle_click_event(event.payload, event_bus)
                 event.consume()
+            if event.event_type == EventType.INPUT:
+                print("Input event received:", event.payload)
+                self._handle_key_event(event.payload, event_bus)
+                event.consume()
+            elif event.event_type == EventType.INVENTORY_CHANGE:
+                self._handle_inventory_change(event.payload)
+                event.consume()
         for e in self.entities:
             e.update(
                 time_delta=dt,
@@ -128,7 +142,23 @@ class World:
                 target_pos=self.get_current_player().pos,
             )
 
-    def check_if_click_on_entity(
+
+    def _handle_inventory_change(self, payload: dict) -> None:
+        """Handle inventory change events."""
+        action_type = payload["action"]
+        object_name = payload["object_name"]
+        item_id = payload.get("item_id")
+
+        if action_type == "add":
+            item = Item(item_id, object_name, stackable=False)
+            self.inventory.add(item)
+        elif action_type == "remove":
+            item = Item(item_id, object_name)
+            self.inventory.remove(item)
+
+        self.inventory_ui.items = self.inventory.return_all_items()
+
+    def _check_if_click_on_entity(
         self,
         tile_x: int,
         tile_y: int,
@@ -147,6 +177,10 @@ class World:
 
         clickable_entities.sort(key=lambda e: e.pos.z, reverse=True)
         return clickable_entities[0] if clickable_entities else None
+    
+    def _handle_key_event(self, payload: dict, event_bus: EventBus) -> None:
+        key = payload["key"]
+        print("Key pressed:", key)
 
     def _handle_click_event(self, payload: dict, event_bus: EventBus) -> None:
         """Handle click events to interact with entities."""
@@ -154,7 +188,7 @@ class World:
 
         player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
         entities_in_scope = self.find_near(player_pos, self.tile_map.tile_size)
-        clicked_entity = self.check_if_click_on_entity(
+        clicked_entity = self._check_if_click_on_entity(
             world_x,
             world_y,
             entities_in_scope,

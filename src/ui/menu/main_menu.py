@@ -14,10 +14,12 @@ class MainMenu:
         self._continue_btn = document.querySelector("#main-menu .continue")
         self._new_game_btn = document.querySelector("#main-menu .new-game")
         self._settings_btn = document.querySelector("#main-menu .settings")
+        self._how_to_play_btn = document.querySelector("#main-menu .how-to-play")
 
         self._continue_btn.onclick = lambda _: self._continue_btn_onclick()
         self._new_game_btn.onclick = lambda _: self._new_game_btn_onclick()
         self._settings_btn.onclick = lambda _: self._settings_btn_onclick()
+        self._how_to_play_btn.onclick = lambda _: self._how_to_play_btn_onclick()
 
     def _continue_btn_onclick(self) -> None:
         self.hide()
@@ -44,6 +46,15 @@ class MainMenu:
         self.event_bus.post(
             GameEvent(
                 event_type=EventType.OPEN_SETTINGS,
+                payload={},
+            ),
+        )
+
+    def _how_to_play_btn_onclick(self) -> None:
+        self.hide()
+        self.event_bus.post(
+            GameEvent(
+                event_type=EventType.OPEN_HELP,
                 payload={},
             ),
         )

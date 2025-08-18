@@ -25,9 +25,16 @@ async function loadDialog() {
     document.getElementById('dialog-container').innerHTML = html;
 }
 
+async function loadInventory() {
+    const response = await fetch("src/ui/components/inventory.html");
+    const htmlText = await response.text();
+    document.querySelector(".inventory-overlay").innerHTML = htmlText;
+};
+
 async function main() {
     await loadMenu();
     await loadDialog();
+    await loadInventory();
     console.log('Loading Pyodide...');
     const pyodide = await loadPyodide();
     pyodide.setDebug(true);
