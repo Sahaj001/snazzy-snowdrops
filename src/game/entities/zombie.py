@@ -52,17 +52,20 @@ class Zombie(Entity):
         self.chasing = True
         self.prev_state = ZombieState.WALKING_DOWN
         self.take_damage_to_player = False
+        self.now = time.time()
 
     def take_damage(self, target_pos: Pos):
-        return True if (self.pos.x - target_pos.x) ** 2 + (self.pos.y - target_pos.y) ** 2 < 2 else False
+        return ((self.pos.x - target_pos.x) ** 2 + (self.pos.y - target_pos.y) ** 2) ** (1/2)
 
     def update(self, **kwargs: int) -> None:
         """Update the zombie's state and position."""
         world = kwargs.get("world")
-        if time.time() - Zombie.now >= 1:
-            self.take_damage_to_player = self.take_damage(kwargs.get("target_pos", self.pos))
-            Zombie.now = time.time()
-            print(self.take_damage_to_player)
+        if time.time() - self.now >= 1:
+            print(self.take_damage(kwargs.get("target_pos", self.pos)))
+            if self.take_damage(kwargs.get("target_pos", self.pos)) < 2:
+                self.take_damage_to_player = True
+            else:
+                self.take_damage_to_player = False
         if self.chasing:
             self.chase(world, kwargs.get("target_pos", self.pos))
         else:
