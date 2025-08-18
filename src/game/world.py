@@ -124,7 +124,7 @@ class World:
                     ),
                 )
                 return
-            if event.event_type == EventType.MOUSE_CLICK and not event.is_consumed:
+            if event.event_type == EventType.MOUSE_CLICK:
                 self._handle_click_event(event.payload, event_bus)
                 event.consume()
             if event.event_type == EventType.INPUT:
