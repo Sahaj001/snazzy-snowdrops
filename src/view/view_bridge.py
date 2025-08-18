@@ -15,7 +15,26 @@ if TYPE_CHECKING:
     from models.draw_cmd import DrawCmd
     from models.tile import TilesRegistry
 
-ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape", "E", "e", "F", "f", "w", "W", "s", "S", "a", "A", "d", "D"]
+ALLOWED_INPUTS = [
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "Enter",
+    "Escape",
+    "E",
+    "e",
+    "F",
+    "f",
+    "w",
+    "W",
+    "s",
+    "S",
+    "a",
+    "A",
+    "d",
+    "D",
+]
 
 
 class ViewBridge:
@@ -80,6 +99,8 @@ class ViewBridge:
                 cmd.dialog.update()
             elif cmd.type == DrawCmdType.INVENTORY_OVERLAY:
                 cmd.inventory_overlay.draw(self.canvas)
+            elif cmd.type == DrawCmdType.PUZZLE:
+                cmd.puzzle.draw(self.canvas)
 
     def draw_collision_box(self, cmd: DrawCmd) -> None:
         """Draw a semi-transparent rectangle for collision boxes."""
