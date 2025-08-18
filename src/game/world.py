@@ -4,13 +4,14 @@ import copy
 from typing import TYPE_CHECKING
 
 from engine.event_bus import EventType, GameEvent
-from game.entities.player import Player
+from game import Player
 from models import Pos, TileMap
 from game.inventory import Inventory, Item
 from ui.inventory import InventoryOverlay
 
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
+    from game import Zombie
     from game.entities.entity import Entity
 
 
@@ -21,16 +22,23 @@ class World:
         self,
         player: Player,
         entities: list[Entity],
+        zombies: list[Zombie],
         tile_map: TileMap,
         inventory: Inventory
     ) -> None:
         self.players = []
         self.entities = []
+        self.zombies = []
+
         self.inventory: Inventory = inventory
         self.inventory_ui: InventoryOverlay = InventoryOverlay(self.inventory)
+
         self.add_player(player)
         for entity in entities:
             self.add_entity(entity)
+        for zombie in zombies:
+            self.zombies.append(zombie)
+            self.add_entity(zombie)
 
         self.tile_map = tile_map
         # create a deep copy of the original state of the world
@@ -116,7 +124,7 @@ class World:
                     ),
                 )
                 return
-            if event.event_type == EventType.MOUSE_CLICK:
+            if event.event_type == EventType.MOUSE_CLICK and not event.is_consumed:
                 self._handle_click_event(event.payload, event_bus)
                 event.consume()
             if event.event_type == EventType.INPUT:
@@ -127,7 +135,13 @@ class World:
                 self._handle_inventory_change(event.payload)
                 event.consume()
         for e in self.entities:
-            e.update(time_delta=dt, events=events, world=self)
+            e.update(
+                time_delta=dt,
+                events=events,
+                world=self,
+                target_pos=self.get_current_player().pos,
+            )
+
 
     def _handle_inventory_change(self, payload: dict) -> None:
         """Handle inventory change events."""
@@ -174,7 +188,7 @@ class World:
 
         player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
         entities_in_scope = self.find_near(player_pos, self.tile_map.tile_size)
-        clicked_entity = self._check_if_click_on_entity(
+        clicked_entity = self.check_if_click_on_entity(
             world_x,
             world_y,
             entities_in_scope,

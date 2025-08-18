@@ -13,9 +13,10 @@ from engine import (
     RenderSystem,
     SoundSystem,
 )
+from engine.place import PlaceSystem
 from engine.settings import Settings
 from engine.state import DelayState
-from game import Fruit, Player, World
+from game import Fruit, Player, World, Zombie
 from game.inventory import Inventory
 from models import Pos, SpriteRegistry, TileMap, TilesRegistry
 from view import ViewBridge
@@ -28,14 +29,13 @@ FRUIT_Z = 1
 
 async def create_player(tile_map: TileMap) -> Player:
     """Add a player to the world at the center position."""
-    world_width_pixels = tile_map.width * tile_map.tile_size
-    world_height_pixels = tile_map.height * tile_map.tile_size
     player_sprite_registry_json = await load_json("assets/db/player.json")
     player_sprite_registry = SpriteRegistry.load_from_json(player_sprite_registry_json)
+    player_x, player_y = tile_map.player_spawn
 
     return Player(
         entity_id="player1",
-        pos=Pos(world_width_pixels // 2, world_height_pixels // 2, PLAYER_Z),
+        pos=Pos(player_x, player_y, PLAYER_Z),
         behaviour=None,
         hp=5,
         fatigue=20,
@@ -43,20 +43,49 @@ async def create_player(tile_map: TileMap) -> Player:
     )
 
 
+async def create_zombies(tile_map: TileMap) -> list[Zombie]:
+    """Add a zombie to the world at the center position."""
+    zombie_sprite_registry_json = await load_json("assets/db/zombie.json")
+    zombie_sprite_registry = SpriteRegistry.load_from_json(zombie_sprite_registry_json)
+    zombies = []
+    zombie_spawn_positions = set(tile_map.zombie_spawns)
+    for i, spawn in enumerate(zombie_spawn_positions):
+        tile_x, tile_y = spawn
+        # Ensure the zombie spawns at the tile center
+        zombie_x = tile_x + tile_map.tile_size // 2
+        zombie_y = tile_y + tile_map.tile_size // 2
+
+        zombie = Zombie(
+            zombie_id=f"zombie_{i}",
+            pos=Pos(x=zombie_x, y=zombie_y, z=PLAYER_Z),
+            behaviour=None,
+            sprite_registry=zombie_sprite_registry,
+        )
+        zombies.append(zombie)
+
+    return zombies
+
+
 async def create_fruits(tile_map: TileMap, num_fruits: int = 5) -> list[Fruit]:
     """Add a specified number of fruits to the world at random positions."""
     fruit_registry_json = await load_json("assets/db/fruit.json")
     fruit_registry = SpriteRegistry.load_from_json(fruit_registry_json)
     fruits = []
+    fruit_positions = set(tile_map.fruit_spawns)
     for i in range(num_fruits):
-        tile_x = random.randint(0, tile_map.width - 1)
-        tile_y = random.randint(0, tile_map.height - 1)
+        fruit_spawn = random.choice(list(fruit_positions))
+        tile_x, tile_y = fruit_spawn
+        # Ensure the fruit spawns at the tile center
+        fruit_x = tile_x + tile_map.tile_size // 2
+        fruit_y = tile_y + tile_map.tile_size // 2
+        fruit_positions.remove(fruit_spawn)  # Avoid duplicate spawns
+
         fruit = Fruit(
             fruit_id=f"fruit_{i}",
             pos=Pos(
-                tile_x * tile_map.tile_size,
-                tile_y * tile_map.tile_size,
-                FRUIT_Z,
+                x=fruit_x,
+                y=fruit_y,
+                z=FRUIT_Z,
             ),
             behaviour=None,
             sprite_registry=fruit_registry,
@@ -66,16 +95,13 @@ async def create_fruits(tile_map: TileMap, num_fruits: int = 5) -> list[Fruit]:
     return fruits
 
 
-async def create_engine(sound_sys: SoundSystem) -> GameEngine:
+async def create_engine() -> GameEngine:
     """Create and return the game engine."""
     # Ensure all systems are initialized
-    await load_json("assets/audio/bgm.json")
-    await load_json("assets/audio/sfx.json")
-
     canvas = document.getElementById("gameCanvas")
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
-    input_system = InputSystem()
+    input_sys = InputSystem()
 
     tiled = await load_json("assets/tilemap/cj.tmj")
 
@@ -91,7 +117,8 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
 
     player = await create_player(tile_map)
     fruits = await create_fruits(tile_map, num_fruits=5)
-    world = World(player, fruits, tile_map=tile_map, inventory=Inventory())
+    zombies = await create_zombies(tile_map)
+    world = World(player, fruits, zombies, tile_map=tile_map, inventory=Inventory())
 
     camera = Camera(
         x=2,
@@ -103,7 +130,12 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
         zoom=1.25,
     )
 
-    view_bridge = ViewBridge(canvas, input_system, tile_registry)
+    sound_sys = SoundSystem(
+        bgm_map=await load_json("assets/audio/bgm.json"),
+        sfx_map=await load_json("assets/audio/sfx.json"),
+    )
+
+    view_bridge = ViewBridge(canvas, input_sys, tile_registry)
     render_system = RenderSystem(
         view_bridge=view_bridge,
         camera=camera,
@@ -116,13 +148,22 @@ async def create_engine(sound_sys: SoundSystem) -> GameEngine:
         sound_system=sound_sys,
     )
 
+    place_sys = PlaceSystem(
+        input_sys=input_sys,
+        event_bus=event_bus,
+        tile_map=tile_map,
+        fruit_registry=SpriteRegistry.load_from_json(await load_json("assets/db/fruit.json")),
+        world=world,
+    )
+
     return GameEngine(
         world=world,
         renderer=render_system,
-        input_sys=input_system,
+        input_sys=input_sys,
         event_bus=event_bus,
         sound_sys=sound_sys,
         settings=settings,
+        place_sys=place_sys,
     )
 
 
@@ -171,12 +212,7 @@ def tick_frame(engine: GameEngine, timestamp: float, lf_timestamp: float = 0) ->
 
 async def start() -> None:
     """Initialize the game engine and start the game loop."""
-    sound_sys = SoundSystem(
-        bgm_map=await load_json("assets/audio/bgm.json"),
-        sfx_map=await load_json("assets/audio/sfx.json"),
-    )
-
-    engine = await create_engine(sound_sys)
+    engine = await create_engine()
 
     engine.settings.main_menu.make_visible()
 

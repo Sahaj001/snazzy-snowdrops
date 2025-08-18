@@ -1,3 +1,4 @@
+import random
 from enum import Enum
 from typing import Optional
 
@@ -22,3 +23,8 @@ class Direction(Enum):
         if key == "ArrowRight":
             return cls.RIGHT
         return None
+
+    @classmethod
+    def random(cls) -> "Direction":
+        """Return a random direction."""
+        return random.choice(list(cls))

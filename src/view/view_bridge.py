@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from models.draw_cmd import DrawCmd
     from models.tile import TilesRegistry
 
-ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape", "E", "e", "w", "W", "s", "S", "a", "A", "d", "D"]
+ALLOWED_INPUTS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "Escape", "E", "e", "F", "f", "w", "W", "s", "S", "a", "A", "d", "D"]
 
 
 class ViewBridge:

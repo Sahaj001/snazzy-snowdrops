@@ -105,6 +105,11 @@ class TileMap:
         self.tile_size = tile_size
         self.tiles: dict[tuple[int, int], list[Tile]] = defaultdict(list)
         self.collision_boxes: list[ObjectTile] = []
+        self.player_spawn: tuple[int, int] = (0, 0)
+        self.zombie_spawns: list[tuple[int, int]] = []
+        self.altars: list[tuple[int, int]] = []
+        self.puzzle: tuple[int, int] = (0, 0)
+        self.fruit_spawns: list[tuple[int, int]] = []
 
     def get(self, x: int, y: int) -> list[Tile] | None:
         """Get the tile at given coordinates."""
@@ -141,7 +146,7 @@ class TileMap:
                         y = idx // tile_map.width
                         tile = Tile(gid=gid, z=0, passable=True)
                         tile_map.set(x, y, tile)
-            elif layer["type"] == "objectgroup":
+            elif layer["type"] == "objectgroup" and layer["name"] == "collision":
                 for obj in layer["objects"]:
                     tile_map.add_collision_box(
                         ObjectTile(
@@ -153,4 +158,20 @@ class TileMap:
                             passable=obj.get("properties", {}).get("passable", False),
                         ),
                     )
+            elif layer["type"] == "objectgroup" and layer["name"] == "zombie":
+                for obj in layer["objects"]:
+                    tile_map.zombie_spawns.append((obj["x"], obj["y"]))
+
+            elif layer["type"] == "objectgroup" and layer["name"] == "altar":
+                for obj in layer["objects"]:
+                    tile_map.altars.append((obj["x"], obj["y"]))
+            elif layer["type"] == "objectgroup" and layer["name"] == "puzzle":
+                for obj in layer["objects"]:
+                    tile_map.puzzle = (obj["x"], obj["y"])
+            elif layer["type"] == "objectgroup" and layer["name"] == "player_spawn":
+                for obj in layer["objects"]:
+                    tile_map.player_spawn = (obj["x"], obj["y"])
+            elif layer["type"] == "objectgroup" and layer["name"] == "fruit_spawn":
+                for obj in layer["objects"]:
+                    tile_map.fruit_spawns.append((obj["x"], obj["y"]))
         return tile_map

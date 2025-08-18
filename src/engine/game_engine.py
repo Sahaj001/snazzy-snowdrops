@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from js import document, Event
+from js import Event, document
+from pyodide.ffi import create_proxy
 
 from engine.event_bus import EventType, GameEvent
 from engine.input_system import InputType
@@ -10,6 +11,7 @@ from engine.input_system import InputType
 if TYPE_CHECKING:
     from engine.event_bus import EventBus
     from engine.input_system import InputSystem
+    from engine.place import PlaceSystem
     from engine.renderer_system import RenderSystem
     from engine.settings import Settings
     from engine.sound_system import SoundSystem
@@ -28,6 +30,7 @@ class GameEngine:
         event_bus: EventBus,
         sound_sys: SoundSystem,
         settings: Settings,
+        place_sys: PlaceSystem,
     ) -> None:
         self.world = world
         self.renderer = renderer
@@ -35,9 +38,11 @@ class GameEngine:
         self.event_bus = event_bus
         self.sound_sys = sound_sys
         self.settings = settings
+        self.place_sys = place_sys
 
-        document.addEventListener("click", self._play_bgm_on_load)
-        document.addEventListener("keypress", self._play_bgm_on_load)
+        self._play_bgm_on_load_proxy = create_proxy(self._play_bgm_on_load)
+        document.addEventListener("click", self._play_bgm_on_load_proxy)
+        document.addEventListener("keypress", self._play_bgm_on_load_proxy)
 
     def tick(self, dt: float) -> None:
         """Advance the game state by dt seconds."""
@@ -66,9 +71,7 @@ class GameEngine:
                 self.sound_sys.play_sfx("btn-click")
             # handle keyboard events
             elif input_event.input_type in (InputType.KEYDOWN, InputType.KEYUP):
-                event_type = self.get_event_type(
-                    input_event.key,
-                )
+                event_type = self.get_event_type(input_event.key)
 
                 self.event_bus.post(
                     GameEvent(
@@ -79,6 +82,7 @@ class GameEngine:
 
         self.settings.update(self.event_bus)
         if self.settings.game_state.is_resumed():
+            self.place_sys.update()
             self.world.update(dt, self.event_bus)
 
     def render(self, now: float) -> None:
@@ -98,6 +102,8 @@ class GameEngine:
 
     def get_event_type(self, key: str) -> EventType | None:
         """Determine the event type based on the key pressed."""
+        if key.lower() == "f" and not self.settings.game_state.is_paused():
+            return EventType.PLACE_MODE_STATE_CHANGE
         if key in ("ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"):
             return EventType.PLAYER_MOVED
         if key == "Escape":
@@ -105,11 +111,10 @@ class GameEngine:
                 return EventType.GAME_RESUMED
             return EventType.GAME_PAUSED
         return None
- 
+
     def _play_bgm_on_load(self, event: Event) -> None:
         if event.isTrusted:
             self.sound_sys.play_bgm("normal")
 
-            document.removeEventListener("click", self._play_bgm_on_load)
-            document.removeEventListener("keypress", self._play_bgm_on_load)
-
+            document.removeEventListener("click", self._play_bgm_on_load_proxy)
+            document.removeEventListener("keypress", self._play_bgm_on_load_proxy)
