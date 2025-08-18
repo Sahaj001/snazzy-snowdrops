@@ -1,7 +1,6 @@
 # Import necessary JS bindings
 import random
 
-from engine.event_bus import EventType, GameEvent
 from js import Event, document, performance, window
 from pyodide.ffi import create_proxy
 from pyodide.http import pyfetch
@@ -139,14 +138,6 @@ async def create_engine() -> GameEngine:
     view_bridge = ViewBridge(canvas, input_sys, tile_registry)
     render_system = RenderSystem(view_bridge=view_bridge, camera=camera, inventory_overlay=world.inventory_ui)
     event_bus = EventBus()
-    # event_bus.post(
-    #     GameEvent(
-    #         EventType.BEGIN_PUZZLE,
-    #         {
-    #             "puzzle_kind": "sliding_tiles_puzzle",
-    #         },
-    #     ),
-    # )
 
     settings = Settings(
         event_bus=event_bus,
