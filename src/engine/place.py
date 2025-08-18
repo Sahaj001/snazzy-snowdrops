@@ -7,7 +7,6 @@ from models.position import Pos
 from models.sprite import SpriteRegistry
 from models.tile import TileMap
 
-
 class PlaceSystem:
     def __init__(
         self,
@@ -50,6 +49,10 @@ class PlaceSystem:
             z=1,
         )
 
+        if not self.world.inventory.has_fruit():
+            print("No fruit in inventory, cannot place.")
+            return
+
         if self._is_placeable(fruit_pos):
             fruit = Fruit(
                 fruit_id=f"fruit_t_{x}_{y}",
@@ -59,9 +62,12 @@ class PlaceSystem:
             )
             self.world.add_entity(fruit)
 
+            self.world.inventory.remove_fruit(self.world)
+
             print(f"placed {fruit.id} at {fruit_pos}")
 
     def _is_placeable(self, fruit_pos: Pos) -> bool:
+        print(f"Checking if placeable at {fruit_pos}")
         player_pos = self.world.get_current_player().pos
 
         if (
@@ -70,7 +76,8 @@ class PlaceSystem:
             and self._is_altar(fruit_pos)
         ):
             entities_in_scope = self.world.find_near(fruit_pos, self.tile_size)
-            clicked_entity = self.world.check_if_click_on_entity(fruit_pos.x, fruit_pos.y, entities_in_scope)
+            clicked_entity = self.world._check_if_click_on_entity(fruit_pos.x, fruit_pos.y, entities_in_scope)
+            print(f"Clicked entity: {clicked_entity}")
 
             if clicked_entity is None:
                 return True

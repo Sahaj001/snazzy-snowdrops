@@ -14,13 +14,13 @@ class Direction(Enum):
     @classmethod
     def from_key(cls, key: str) -> Optional["Direction"]:
         """Convert a string to a Direction enum."""
-        if key == "ArrowUp":
+        if key == "ArrowUp" or key.lower() == "w":
             return cls.UP
-        if key == "ArrowDown":
+        if key == "ArrowDown" or key.lower() == "s":
             return cls.DOWN
-        if key == "ArrowLeft":
+        if key == "ArrowLeft" or key.lower() == "a":
             return cls.LEFT
-        if key == "ArrowRight":
+        if key == "ArrowRight" or key.lower() == "d":
             return cls.RIGHT
         return None
 

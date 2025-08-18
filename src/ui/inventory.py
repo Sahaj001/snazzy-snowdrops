@@ -53,6 +53,7 @@ class InventoryOverlay:
         self.items = self.inventory.return_all_items()
 
     def draw(self, canvas=None): 
+        self.items = self.inventory.return_all_items()
         self.active = InventoryState.is_inventory_active() 
         if not self.active:
             self.overlay_div.style.display = "none"

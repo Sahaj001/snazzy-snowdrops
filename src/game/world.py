@@ -188,7 +188,7 @@ class World:
 
         player_pos = self.players[0].pos if self.players else Pos(0, 0, 0)
         entities_in_scope = self.find_near(player_pos, self.tile_map.tile_size)
-        clicked_entity = self.check_if_click_on_entity(
+        clicked_entity = self._check_if_click_on_entity(
             world_x,
             world_y,
             entities_in_scope,
