@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from game.entities.entity import Entity
 
 
-class World:
+class World():
     """The game world, containing all entities and the tile map."""
 
     def __init__(
@@ -26,12 +26,13 @@ class World:
         tile_map: TileMap,
         inventory: Inventory
     ) -> None:
-        self.players = []
+        self.players: list[Player] = []
         self.entities = []
-        self.zombies = []
+        self.zombies: list[Zombie] = []
 
         self.inventory: Inventory = inventory
         self.inventory_ui: InventoryOverlay = InventoryOverlay(self.inventory)
+
 
         self.add_player(player)
         for entity in entities:
@@ -111,6 +112,12 @@ class World:
     def update(self, dt: float, event_bus: EventBus) -> None:
         """Update all entities in the world."""
         events = event_bus.get_events()
+
+        # Damage the player
+        for player, zombie in zip(self.players, self.zombies):
+            if zombie.take_damage_to_player:
+                print(player.hp)
+                player.take_damage(0.5)
 
         for event in events:
             if event.event_type == EventType.NEW_GAME:

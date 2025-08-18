@@ -42,8 +42,6 @@ class PlaceSystem:
                 self._place(*pos)
                 event.consume()
 
-        self.event_bus.clear()
-
     def _place(self, x: int, y: int) -> None:
         fruit_pos = Pos(
             x=(x // self.tile_size) * self.tile_size,
