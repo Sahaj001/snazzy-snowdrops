@@ -134,6 +134,8 @@ class Zombie(Entity):
             self.prev_state = self.state
             self.state = ZombieState.random()
 
+        
+
     def update_frame_idx(self) -> None:
         """Update the frame index for the zombie's sprite animation."""
         if self.sprite_registry:
