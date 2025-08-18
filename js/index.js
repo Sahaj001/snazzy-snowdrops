@@ -39,6 +39,9 @@ async function main() {
     const pyodide = await loadPyodide();
     pyodide.setDebug(true);
 
+    console.log('Loading packages ...')
+    await pyodide.loadPackage("numpy");
+
     console.log('Loading python project...');
     await loadProject(pyodide);
 

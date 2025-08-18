@@ -202,8 +202,8 @@ class RenderSystem:
                     print(f"Closing dialog: {self.active_dialog.text}")
                     self.active_dialog = None
                 event.consume()
-            elif event.event_type == EventType.DIALOG_INPUT:
-                self._handle_dialog_input_event(event)
+            # elif event.event_type == EventType.DIALOG_INPUT:
+            #     self._handle_dialog_input_event(event)
             elif event.event_type == EventType.BEGIN_PUZZLE:
                 self._handle_begin_puzzle_event(event)
             elif event.event_type == EventType.PUZZLE_INPUT:
@@ -261,14 +261,23 @@ class RenderSystem:
         event.consume()
 
     def _handle_begin_puzzle_event(self, event: GameEvent) -> None:
-        self.active_puzzle = puzzles[event.payload["puzzle_kind"]](event)
+        self.active_puzzle = puzzles[event.payload["puzzle_kind"]]("assets/images/puzzle/image.png", 3, 50)
         event.consume()
 
     def _handle_puzzle_input_event(self, event: GameEvent) -> None:
+
         if self.active_puzzle:
-            match event.payload.get("key"):
+            key = event.payload.get("key")
+            match key:
+                case "ArrowLeft":
+                    self.active_puzzle.handle_input('left')
+                case "ArrowRight":
+                    self.active_puzzle.handle_input('right')
+                case "ArrowDown":
+                    self.active_puzzle.handle_input('down')
+                case "ArrowUp":
+                    self.active_puzzle.handle_input('up')
                 case "Escape":
                     self.active_puzzle = None
-                case _:
-                    self.active_puzzle.handle_input(event.payload)
+        
         event.consume()

@@ -1,0 +1,26 @@
+{
+    "name": "stone",
+    "state": {
+        "idle": {
+            "image_path": "assets/images/puzzle/stone.png",
+            "width": 48,
+            "height": 48,
+            "frame_count": 0,
+            "loop": false
+        },
+        "puzzle_active": {
+            "image_path": "assets/images/puzzle/stone.png",
+            "width": 48,
+            "height": 48,
+            "frame_count": 6,
+            "loop": true
+        },
+        "solved": {
+            "image_path": "assets/images/puzzle/stone.png",
+            "width": 48,
+            "height": 48,
+            "frame_count": 0,
+            "loop": false
+        }
+    }
+}

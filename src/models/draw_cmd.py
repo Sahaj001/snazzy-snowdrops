@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from .position import Pos
     from .sprite import Sprite
 
+from puzzles import SlidingTilesPuzzle
 
 class DrawCmdType(Enum):
     """Types of draw commands for the RenderSystem."""
@@ -44,4 +45,4 @@ class DrawCmd:
     rotation: float = 0.0  # Rotation in degrees
     scale: float = 1.0  # Scale multiplier
     opacity: float = 1.0  # Transparency (1.0 = fully opaque)
-    puzzle: object | None = None
+    puzzle: SlidingTilesPuzzle | None = None

@@ -15,6 +15,7 @@ class EventType(Enum):
     # dialog events
     ASK_DIALOG = "ask_dialog"
     CLOSE_DIALOG = "close_dialog"
+    DIAGLOG_INPUT = "dialog_input"
 
     # interaction events
     FRUIT_PICKED = "fruit_picked"
