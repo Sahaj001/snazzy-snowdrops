@@ -1,4 +1,5 @@
 import random
+import time
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -35,6 +36,8 @@ class ZombieState(Enum):
 
 
 class Zombie(Entity):
+    now = time.time()
+
     def __init__(
         self,
         zombie_id: str,
@@ -48,10 +51,21 @@ class Zombie(Entity):
         self.step_size = 1
         self.chasing = True
         self.prev_state = ZombieState.WALKING_DOWN
+        self.take_damage_to_player = False
+        self.now = time.time()
+
+    def take_damage(self, target_pos: Pos):
+        return ((self.pos.x - target_pos.x) ** 2 + (self.pos.y - target_pos.y) ** 2) ** (1/2)
 
     def update(self, **kwargs: int) -> None:
         """Update the zombie's state and position."""
         world = kwargs.get("world")
+        if time.time() - self.now >= 1:
+            print(self.take_damage(kwargs.get("target_pos", self.pos)))
+            if self.take_damage(kwargs.get("target_pos", self.pos)) < 2:
+                self.take_damage_to_player = True
+            else:
+                self.take_damage_to_player = False
         if self.chasing:
             self.chase(world, kwargs.get("target_pos", self.pos))
         else:
@@ -97,7 +111,7 @@ class Zombie(Entity):
             self.pos.x = next_x
             self.pos.y = next_y
             self.state = self.prev_state
-            return
+            return 
 
         # If can't continue in previous direction, find new possible moves
         possible_moves = []
@@ -133,6 +147,9 @@ class Zombie(Entity):
         else:
             self.prev_state = self.state
             self.state = ZombieState.random()
+            
+
+        
 
     def update_frame_idx(self) -> None:
         """Update the frame index for the zombie's sprite animation."""

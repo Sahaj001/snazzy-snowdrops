@@ -26,10 +26,10 @@ async function loadDialog() {
 }
 
 async function loadInventory() {
-    const response = await fetch("src/ui/components/inventory.html");
+    const response = await fetch('src/ui/components/inventory.html');
     const htmlText = await response.text();
-    document.querySelector(".inventory-overlay").innerHTML = htmlText;
-};
+    document.querySelector('.inventory-overlay').innerHTML = htmlText;
+}
 
 async function main() {
     await loadMenu();
@@ -37,9 +37,14 @@ async function main() {
     await loadInventory();
     console.log('Loading Pyodide...');
     const pyodide = await loadPyodide();
+
     pyodide.setDebug(true);
 
+    console.log('Loading packages ...');
+    await pyodide.loadPackage('numpy');
+
     console.log('Loading python project...');
+
     await loadProject(pyodide);
 
     console.log('Loading Python packages...');
@@ -51,8 +56,6 @@ async function main() {
     `);
 
     await loadStatusBar();
-
-
 }
 
 main();

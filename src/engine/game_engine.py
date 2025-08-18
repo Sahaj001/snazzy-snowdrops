@@ -39,6 +39,7 @@ class GameEngine:
         self.sound_sys = sound_sys
         self.settings = settings
         self.place_sys = place_sys
+        self.puzzle_started = False
 
         self._play_bgm_on_load_proxy = create_proxy(self._play_bgm_on_load)
         document.addEventListener("click", self._play_bgm_on_load_proxy)
@@ -61,12 +62,26 @@ class GameEngine:
                     screen_x,
                     screen_y,
                 )
-                self.event_bus.post(
-                    GameEvent(
-                        event_type=EventType.MOUSE_CLICK,
-                        payload={"type": "click", "position": (world_x, world_y)},
-                    ),
-                )
+                if (
+                    11 <= world_x // self.world.tile_map.tile_size <= 12  # noqa: PLR2004
+                    and 7 <= world_y // self.world.tile_map.tile_size <= 8  # noqa: PLR2004
+                ):
+                    self.event_bus.post(
+                        GameEvent(
+                            EventType.BEGIN_PUZZLE,
+                            {
+                                "puzzle_kind": "sliding_tiles_puzzle",
+                            },
+                        ),
+                    )
+                    self.puzzle_started = True
+                else:
+                    self.event_bus.post(
+                        GameEvent(
+                            event_type=EventType.MOUSE_CLICK,
+                            payload={"type": "click", "position": (world_x, world_y)},
+                        ),
+                    )
 
                 self.sound_sys.play_sfx("btn-click")
             # handle keyboard events
@@ -105,6 +120,8 @@ class GameEngine:
         if key.lower() == "f" and not self.settings.game_state.is_paused():
             return EventType.PLACE_MODE_STATE_CHANGE
         if key in ("ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"):
+            if self.puzzle_started:
+                return EventType.PUZZLE_INPUT
             return EventType.PLAYER_MOVED
         if key == "Escape":
             if self.settings.game_state.is_paused():

@@ -18,6 +18,8 @@ class EventType(Enum):
 
     # interaction events
     FRUIT_PICKED = "fruit_picked"
+    BEGIN_PUZZLE = "begin_puzzle"
+    PUZZLE_INPUT = "puzzle_input"
 
     # game events
     GAME_PAUSED = "game_paused"
@@ -26,7 +28,7 @@ class EventType(Enum):
     OPEN_SETTINGS = "open_settings"
     OPEN_HELP = "open_help"
 
-    #inventory events
+    # inventory events
     INVENTORY_CHANGE = "inventory_change"
 
     # throw mode

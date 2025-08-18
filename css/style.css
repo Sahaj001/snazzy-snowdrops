@@ -326,3 +326,26 @@ label {
     border: none;
     border-radius: 5px;
 }
+
+/* Altar demo wrapper */
+#how-to-play-menu .altar-demo {
+    text-align: center;         /* Center the image */
+    margin: 15px 0;
+}
+
+/* Altar demo image */
+#how-to-play-menu .altar-demo .altar-image {
+    max-width: 100%;            /* Make sure it fits in the menu */
+    height: auto;
+    border: 2px solid #fff;     /* Optional: white border */
+    border-radius: 8px;         /* Optional: rounded corners */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+#how-to-play-menu .altar-demo .altar-caption {
+    font-size: 0.85em;       /* smaller than regular text */
+    color: #ccc;             /* lighter color for secondary info */
+    text-align: center;
+    margin-top: 6px;
+    line-height: 1.2;
+}

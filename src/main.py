@@ -136,11 +136,7 @@ async def create_engine() -> GameEngine:
     )
 
     view_bridge = ViewBridge(canvas, input_sys, tile_registry)
-    render_system = RenderSystem(
-        view_bridge=view_bridge,
-        camera=camera,
-        inventory_overlay=world.inventory_ui
-    )
+    render_system = RenderSystem(view_bridge=view_bridge, camera=camera, inventory_overlay=world.inventory_ui)
     event_bus = EventBus()
 
     settings = Settings(
