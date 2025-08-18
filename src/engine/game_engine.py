@@ -39,6 +39,7 @@ class GameEngine:
         self.sound_sys = sound_sys
         self.settings = settings
         self.place_sys = place_sys
+        self.puzzle_started = False
 
         self._play_bgm_on_load_proxy = create_proxy(self._play_bgm_on_load)
         document.addEventListener("click", self._play_bgm_on_load_proxy)
@@ -73,7 +74,7 @@ class GameEngine:
                             },
                         ),
                     )
-                    
+                    self.puzzle_started = True
                 else:
                     self.event_bus.post(
                         GameEvent(
@@ -119,8 +120,8 @@ class GameEngine:
         if key.lower() == "f" and not self.settings.game_state.is_paused():
             return EventType.PLACE_MODE_STATE_CHANGE
         if key in ("ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"):
-            # if EventType.BEGIN_PUZZLE:
-            #     return EventType.PUZZLE_INPUT
+            if self.puzzle_started:
+                return EventType.PUZZLE_INPUT
             return EventType.PLAYER_MOVED
         if key == "Escape":
             if self.settings.game_state.is_paused():
