@@ -6,7 +6,7 @@ from engine.event_bus import EventType, GameEvent
 from engine.state import GameState
 from models.draw_cmd import DrawCmd, DrawCmdType
 from models.position import Pos
-from puzzles import puzzles
+from puzzles import puzzles, SlidingTilesPuzzle
 from ui import DialogBox, InventoryOverlay, InventoryState, StatusBar
 
 if TYPE_CHECKING:
@@ -30,7 +30,7 @@ class RenderSystem:
         self.active_dialog: DialogBox | None = None
         self.status_bar = StatusBar()
         self.inventory_overlay: InventoryOverlay = inventory_overlay
-        self.active_puzzle: object | None = None
+        self.active_puzzle: SlidingTilesPuzzle | None = None
 
     def build_draw_queue(
         self,
@@ -241,6 +241,7 @@ class RenderSystem:
 
     def _handle_begin_puzzle_event(self, event: GameEvent) -> None:
         self.active_puzzle = puzzles[event.payload["puzzle_kind"]]("assets/images/puzzle/image.png", 3, 50)
+        self.active_puzzle.shuffle()
         event.consume()
 
     def _handle_puzzle_input_event(self, event: GameEvent) -> None:
@@ -257,7 +258,9 @@ class RenderSystem:
                     self.active_puzzle.handle_input("up")
                 case "Escape":
                     self.active_puzzle = None
-
+            if self.active_puzzle.is_solved():
+                print('the game is solved hurray')
+            
         event.consume()
 
     def _handle_ask_dialog_event(self, event: GameEvent) -> None:

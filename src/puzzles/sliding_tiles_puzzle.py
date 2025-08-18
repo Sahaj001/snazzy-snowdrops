@@ -15,16 +15,39 @@ class SlidingTilesPuzzle:
         # Create a solved puzzle (last tile is the "empty" space)
         self.tiles = np.arange(grid_size * grid_size).reshape((grid_size, grid_size))
         self.empty_pos = (grid_size - 1, grid_size - 1)  # start bottom-right
+        self.solved = False
 
-    def shuffle(self) -> None:
-        """Randomly shuffle the tiles but keep solvable state (simple shuffle for now)."""
-        flat_tiles = self.tiles.flatten()
-        np.random.shuffle(flat_tiles)  # noqa: NPY002
-        self.tiles = flat_tiles.reshape((self.grid_size, self.grid_size))
+    def shuffle(self):
+        flat = np.arange(self.grid_size * self.grid_size)
+        np.random.shuffle(flat)
 
-        # Find empty tile again
-        empty_index = np.where(self.tiles == self.grid_size**2 - 1)
-        self.empty_pos = (empty_index[0][0], empty_index[1][0])
+        # Ensure solvability
+        while not self._is_solvable(flat):
+            np.random.shuffle(flat)
+
+        self.tiles = flat.reshape((self.grid_size, self.grid_size))
+        self.empty_pos = tuple(np.argwhere(self.tiles == self.grid_size**2 - 1)[0])
+
+    def _is_solvable(self, flat) -> bool:
+        """Check if a given tile arrangement is solvable"""
+        inversions = 0
+        size = self.grid_size
+        empty_tile = size * size - 1
+
+        for i in range(len(flat)):
+            for j in range(i + 1, len(flat)):
+                if flat[i] != empty_tile and flat[j] != empty_tile and flat[i] > flat[j]:
+                    inversions += 1
+
+        if size % 2 == 1:
+            # Odd grid: solvable if inversions even
+            return inversions % 2 == 0
+        else:
+            # Even grid: row of empty from bottom matters
+            empty_row = (np.where(flat == empty_tile)[0][0] // size)
+            empty_row_from_bottom = size - empty_row
+            return (inversions + empty_row_from_bottom) % 2 == 0
+
 
     def swap(self, pos1, pos2) -> None:
         """Swap two tiles given (row, col) positions."""
@@ -50,6 +73,23 @@ class SlidingTilesPuzzle:
         if target_pos:
             self.swap(self.empty_pos, target_pos)
             self.empty_pos = target_pos
+
+        # After each move, check if solved
+        self._check_solved()
+
+    def _swap(self, pos1, pos2):
+        self.tiles[pos1], self.tiles[pos2] = self.tiles[pos2], self.tiles[pos1]
+
+    def _check_solved(self):
+        expected = np.arange(self.grid_size * self.grid_size).reshape((self.grid_size, self.grid_size))
+        if np.array_equal(self.tiles, expected):
+            if not self.solved:
+                self.solved = True
+                self.on_solved()
+
+    def on_solved(self):
+        """Called when puzzle is solved"""
+        print("🎉 Puzzle solved! Game Finished.")
 
     def is_solved(self):
         """Check if puzzle is solved."""
@@ -123,7 +163,8 @@ class SlidingTilesPuzzle:
 
     def draw(self, canvas) -> None:
         ctx = canvas.getContext("2d")
-
+        canvas_width = ctx.canvas.width
+        canvas_height = ctx.canvas.height
         """Draw all tiles in a centered, beautiful grid"""
         # Calculate board size (half the smallest window dimension)
         board_size = min(window.innerWidth, window.innerHeight) // 2
@@ -173,3 +214,28 @@ class SlidingTilesPuzzle:
                 ctx.strokeStyle = "#000"
                 ctx.lineWidth = 2
                 ctx.strokeRect(dest_x, dest_y, tile_draw_size, tile_draw_size)
+        # If solved, overlay full screen
+        if self.solved:
+            self._draw_completion_screen(ctx, canvas_width, canvas_height)
+
+    def _draw_completion_screen(self, ctx, w, h):
+
+        """Draw a full screen overlay when the puzzle is solved"""
+        ctx.save()
+
+        # Semi-transparent dark overlay
+        ctx.fillStyle = "rgba(0, 0, 0, 0.75)"
+        ctx.fillRect(0, 0, w, h)
+
+        # Celebration message
+        ctx.fillStyle = "gold"
+        ctx.font = "bold 36px Arial"
+        ctx.textAlign = "center"
+        ctx.fillText("🎉 Puzzle Completed! 🎉", w // 2, h // 2 - 40)
+
+        ctx.font = "24px Arial"
+        ctx.fillStyle = "white"
+        ctx.fillText("You may now return to your world.", w // 2, h // 2 + 10)
+        ctx.fillText("Press any key to continue...", w // 2, h // 2 + 50)
+
+        ctx.restore()
