@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Optional
+
+from puzzles import SlidingTilesPuzzle
 from ui.inventory import InventoryOverlay
 
 if TYPE_CHECKING:
@@ -20,6 +22,7 @@ class DrawCmdType(Enum):
     TEXT = "text"
     DIALOG = "dialog"
     INVENTORY_OVERLAY = "inventory_overlay"
+    PUZZLE = "puzzle"
 
 
 @dataclass
@@ -42,3 +45,4 @@ class DrawCmd:
     rotation: float = 0.0  # Rotation in degrees
     scale: float = 1.0  # Scale multiplier
     opacity: float = 1.0  # Transparency (1.0 = fully opaque)
+    puzzle: SlidingTilesPuzzle | None = None
