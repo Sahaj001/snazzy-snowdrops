@@ -1,4 +1,5 @@
 import random
+import time
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -35,6 +36,8 @@ class ZombieState(Enum):
 
 
 class Zombie(Entity):
+    now = time.time()
+
     def __init__(
         self,
         zombie_id: str,
@@ -48,10 +51,18 @@ class Zombie(Entity):
         self.step_size = 1
         self.chasing = True
         self.prev_state = ZombieState.WALKING_DOWN
+        self.take_damage_to_player = False
+
+    def take_damage(self, target_pos: Pos):
+        return True if (self.pos.x - target_pos.x) ** 2 + (self.pos.y - target_pos.y) ** 2 < 2 else False
 
     def update(self, **kwargs: int) -> None:
         """Update the zombie's state and position."""
         world = kwargs.get("world")
+        if time.time() - Zombie.now >= 1:
+            self.take_damage_to_player = self.take_damage(kwargs.get("target_pos", self.pos))
+            Zombie.now = time.time()
+            print(self.take_damage_to_player)
         if self.chasing:
             self.chase(world, kwargs.get("target_pos", self.pos))
         else:
@@ -97,7 +108,7 @@ class Zombie(Entity):
             self.pos.x = next_x
             self.pos.y = next_y
             self.state = self.prev_state
-            return
+            return 
 
         # If can't continue in previous direction, find new possible moves
         possible_moves = []
@@ -133,6 +144,7 @@ class Zombie(Entity):
         else:
             self.prev_state = self.state
             self.state = ZombieState.random()
+            
 
         
 
